@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <algorithm>
 
 #include <json_class.hpp>
 #include <parse_to_json_class.hpp>
@@ -40,5 +41,23 @@ int main(int argc, char** argv)
   JSON data = json::readValue(reply.begin(), reply.end());
   std::string token = data.at("access").at("token").at("id");
   std::cout << "Token: " << token << std::endl;
+  // Get the load balancer URL
+  JList& catalog = data.at("access").at("serviceCatalog");
+  using Iterator = typename JList::iterator;
+  Iterator lbs = std::find_if(catalog.begin(), catalog.end(),
+                            [](const JSON& j) {
+    return j.at("name") == "cloudLoadBalancers";
+  });
+  if (lbs == catalog.end())
+    throw std::runtime_error("Invalid JSON");
+  JList& endpoints = lbs->at("endpoints");
+  Iterator ord = std::find_if(endpoints.begin(), endpoints.end(),
+                            [](const JSON& j) {
+    return j.at("region") == "ORD";
+  });
+  if (ord == catalog.end())
+    throw std::runtime_error("Invalid JSON");
+  std::string url = ord->at("publicURL");
+  std::cout << "ORD Load balancers URL: " << url << std::endl;
   return 0;
 }
