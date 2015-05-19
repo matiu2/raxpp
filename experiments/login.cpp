@@ -43,21 +43,16 @@ int main(int argc, char** argv)
   std::cout << "Token: " << token << std::endl;
   // Get the load balancer URL
   JList& catalog = data.at("access").at("serviceCatalog");
-  using Iterator = typename JList::iterator;
-  Iterator lbs = std::find_if(catalog.begin(), catalog.end(),
-                            [](const JSON& j) {
-    return j.at("name") == "cloudLoadBalancers";
-  });
-  if (lbs == catalog.end())
-    throw std::runtime_error("Invalid JSON");
-  JList& endpoints = lbs->at("endpoints");
-  Iterator ord = std::find_if(endpoints.begin(), endpoints.end(),
-                            [](const JSON& j) {
-    return j.at("region") == "ORD";
-  });
-  if (ord == catalog.end())
-    throw std::runtime_error("Invalid JSON");
-  std::string url = ord->at("publicURL");
+  auto findMap = [](JList& input, const std::string& attribute, const std::string& value) -> JSON& {
+    for(JSON& j : input)
+      if (j.at(attribute) == value)
+        return j;
+    throw std::runtime_error(std::string("Expected to find ") + attribute + " but it was not found");
+  };
+  JMap& lbs = findMap(catalog, "name", "cloudLoadBalancers");
+  JList& endpoints = lbs.at("endpoints");
+  JMap& ord = findMap(endpoints, "region", "ORD");
+  std::string url = ord.at("publicURL");
   std::cout << "ORD Load balancers URL: " << url << std::endl;
   return 0;
 }
