@@ -1,6 +1,7 @@
 /// Blocks and opens IP ranges in a load balancer
 
 #include <raxpp/login.hpp>
+#include <raxpp/load-balancer.hpp>
 
 #include <string>
 #include <iostream>
@@ -37,6 +38,10 @@ int main(int argc, char** argv) {
     else
       currentList.push_back(arg);
   }
+  // Login to rackspace
+  raxpp::Rackspace rs(raxpp::login(username, apikey));
+  // Create the load balancer service
+  raxpp::LoadBalancerService lbs(rs);
 
   return 0;
 }
