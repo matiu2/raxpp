@@ -9,15 +9,6 @@ namespace raxpp {
 
 using json::readValue;
 
-Rackspace::Rackspace(const std::string& reply) : _json(readValue(reply.begin(), reply.end())) {
-  _token = _json.at("access").at("token").at("id");
-}
-
-const json::JMap& Rackspace::getCatalog(const std::string& name) const {
-  const json::JList& catalog = _json.at("access").at("serviceCatalog");
-  return findInList(catalog, "name", name);
-}
-
 Rackspace login(const std::string& username, const std::string& apikey) {
   using namespace json;
   JSON login(
