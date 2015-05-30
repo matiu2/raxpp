@@ -5,8 +5,8 @@
 
 namespace raxpp {
 
-enum Datacenters = {DFW, HKG, IAD, ORD, SYD};
-const std::map<Datacenter, std::string> dcNames;
-const std::map<std::string, Datecenter> dcVals;
+enum Datacenter {DFW, HKG, IAD, ORD, SYD};
+extern const std::map<Datacenter, std::string> dcNames;
+extern const std::map<std::string, Datacenter> dcVals;
 
 }

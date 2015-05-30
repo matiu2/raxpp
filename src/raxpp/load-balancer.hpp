@@ -4,7 +4,8 @@
 #include <vector>
 #include <map>
 
-#include "datecenters.hpp"
+#include "datacenters.hpp"
+#include <raxpp/login.hpp>
 
 namespace raxpp {
 
@@ -49,16 +50,10 @@ struct LoadBalancer {
 
 struct LoadBalancerService {
   Rackspace& rs;
-  std::map<Datecenter, std::string> dc_to_url; // Convert a datacenter to the base url
+  std::map<Datacenter, std::string> dc_to_url; // Convert a datacenter to the base url
   std::map<std::string, LoadBalancer> dc_to_lb; // Store the load balancers by their home DC
   std::map<int, LoadBalancer&> lbs_by_name;
-  LoadBalancerService(Rackspace& rs); {
-    using namespace json;
-    const JList &endpoints = rs.getCatalog("cloudLoadBalancers").at("endpoints");
-    for (const JMap& endpoint: endpoints) {
-      dc_to_url.insert({endpoint.at("region"), endpoint.at("publicURL")});
-    }
-  }
+  LoadBalancerService(Rackspace& rs);
   /**
   * @brief List load balancers by datacenter
   *

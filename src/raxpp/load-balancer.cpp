@@ -2,7 +2,7 @@
 
 namespace raxpp {
 
-LoadBalancerService::LoadBalancerService(Rackspace &rs) {
+LoadBalancerService::LoadBalancerService(Rackspace &rs) : rs(rs) {
   using namespace json;
   const JList &endpoints = rs.getCatalog("cloudLoadBalancers").at("endpoints");
   for (const JMap &endpoint : endpoints) {
@@ -11,7 +11,7 @@ LoadBalancerService::LoadBalancerService(Rackspace &rs) {
   }
 }
 
-std::vector<LoadBalancer *> LoadBalancers::list(Datacenter dc, bool forceRefresh = false) {
+std::vector<LoadBalancer *> LoadBalancerService::list(Datacenter dc, bool forceRefresh) {
 
 }
 
