@@ -5,7 +5,7 @@
 #include <map>
 
 #include "datacenters.hpp"
-#include <raxpp/login.hpp>
+#include <raxpp/Rackspace.hpp>
 
 namespace raxpp {
 
