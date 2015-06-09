@@ -55,7 +55,7 @@ private:
   std::map<Datacenter, std::vector<LoadBalancer>>
       dc_to_lbs; // Store the load balancers by their home DC
   /// Updates a list of load balancers via the API
-  std::vector<LoadBalancer>& updateLoadBalancerList(Datacenter dc, bool forceRefresh);
+  const std::vector<LoadBalancer>& updateLoadBalancerList(Datacenter dc, bool forceRefresh);
 public:
   LoadBalancerService(Rackspace& rs);
   /**
@@ -66,9 +66,9 @@ public:
   *
   * @return 
   */
-  std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
-  LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
-  LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
+  const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
+  const LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
+  const LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
 };
   
 }
