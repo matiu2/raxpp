@@ -44,8 +44,25 @@ int main(int argc, char** argv) {
   raxpp::Rackspace rs(username, apikey);
   // Create the load balancer service
   raxpp::LoadBalancerService service(rs);
-  const auto& lb = service.findByName(lbName, dc);
+  // Get the load balancer we need
+  auto& lb = service.findByName(lbName, dc);
   std::cout << lb.name << ' ' << lb.id << std::endl;
-
+  auto accessList = service.getAccessList(lb);
+  for (auto& item : accessList) {
+    std::cout << "ID: " << item.id << std::endl
+    << "address: " << item.address << std::endl
+    << "Type: ";
+    switch (item.type) {
+      case raxpp::AccessListItem::DENY: {
+        std::cout << "Deny";
+        break;
+      }
+      case raxpp::AccessListItem::ALLOW: {
+        std::cout << "Allow";
+        break;
+      }
+    }
+    std::cout << std::endl << std::endl;
+  }
   return 0;
 }

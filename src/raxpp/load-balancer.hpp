@@ -25,7 +25,7 @@ struct VirtualIP {
 
 struct LoadBalancer {
     /// Which DC is the LB from
-    std::string dc;
+    Datacenter dc;
     /// Name of the load balancer to create. The name must be 128 characters or fewer in length, and all UTF-8 characters are valid. See http://www.utf8-chartable.de/ for information about the UTF-8 character set.
     std::string name;
     /// The ID for the load balancer.
@@ -48,6 +48,15 @@ struct LoadBalancer {
     std::vector<VirtualIP> virtualIps;
 };
 
+struct AccessListItem {
+  enum Type {DENY, ALLOW};
+  int id;
+  std::string address;
+  Type type;
+};
+
+using AccessList = std::vector<AccessListItem>;
+
 class LoadBalancerService {
 private:
   Rackspace& rs;
@@ -69,6 +78,8 @@ public:
   const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
   const LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
   const LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
+  /// Returns the access list for a load balancer .. gets it straight form the API (no caching)
+  AccessList getAccessList(const LoadBalancer& lb);
 };
   
 }

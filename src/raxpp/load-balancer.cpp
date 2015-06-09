@@ -65,7 +65,6 @@ const std::vector<LoadBalancer> &
 LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_listLoadBalancers_v1.0__account__loadbalancers_load-balancers.html
   // Request: GET /loadbalancers
-
   // Fill in our results
   auto &destination = dc_to_lbs[dc];
   if (forceRefresh || (destination.size() == 0)) {
@@ -109,4 +108,43 @@ const LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
       << " couldn't be found";
   throw std::runtime_error(msg.str());
 }
+
+AccessList LoadBalancerService::getAccessList(const LoadBalancer& lb) {
+  /* Result format:
+      {
+        "accessList": [
+          {
+            "type": "DENY",
+            "id": 23,
+            "address": "206.160.163.21"
+          },
+          ...
+        ]
+      }
+  */
+  AccessList result;
+  auto &baseUrl = dc_to_url.at(lb.dc);
+  std::stringstream url;
+  url << baseUrl << "/loadbalancers/" << lb.id << "/accesslist";
+  auto response = rs.get(url.str());
+  json::JList& items = response.at("accessList");
+  for (auto& item : items) {
+    AccessListItem output;
+    output.id = (int)item.at("id");
+    output.address = item.at("address");
+    std::string type = item.at("type");
+    if (type == "DENY")
+      output.type = AccessListItem::DENY;
+    else if (type == "ALLOW")
+      output.type = AccessListItem::ALLOW;
+    else {
+      std::stringstream msg;
+      msg << "Unknown access list item type: " << type << " for AccessList Item ID " << output.id;
+      throw std::runtime_error(msg.str());
+    }
+    result.emplace_back(std::move(output));
+  }
+  return result;
+}
+
 }
