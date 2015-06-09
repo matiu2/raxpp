@@ -24,8 +24,9 @@ int main(int argc, char** argv) {
   }
   std::string username = argv[1];
   std::string apikey = argv[2];
-  std::string dc = argv[3];
+  std::string dcName = argv[3];
   std::string lbName = argv[4];
+  raxpp::Datacenter dc = raxpp::dcVals.at(dcName);
   // Make lists of IPs to block/open
   std::vector<std::string> toBlock;
   std::vector<std::string> toOpen;
@@ -43,11 +44,8 @@ int main(int argc, char** argv) {
   raxpp::Rackspace rs(username, apikey);
   // Create the load balancer service
   raxpp::LoadBalancerService service(rs);
-  auto lbs = service.list(raxpp::dcVals.at(dc));
-  using namespace std;
-  for (const auto& lb : lbs) {
-    cout << lb.name << ' ' << lb.id << endl;
-  }
+  const auto& lb = service.findByName(lbName, dc);
+  std::cout << lb.name << ' ' << lb.id << std::endl;
 
   return 0;
 }
