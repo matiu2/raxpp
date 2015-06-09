@@ -61,35 +61,52 @@ LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
-void LoadBalancerService::updateLoadBalancerList(Datacenter dc) {
+const std::vector<LoadBalancer> &
+LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_listLoadBalancers_v1.0__account__loadbalancers_load-balancers.html
   // Request: GET /loadbalancers
-  auto fillInList = [this](Datacenter dc) {
+
+  // Fill in our results
+  auto &destination = dc_to_lbs[dc];
+  if (forceRefresh || (destination.size() == 0)) {
     // Do the request
     auto &url = dc_to_url.at(dc);
     auto lbs = rs.get(url + "/loadbalancers");
-    // Fill in our results
-    auto &destination = dc_to_lbs[dc];
     for (auto &lb : (json::JList &)lbs.at("loadBalancers")) {
       destination.emplace_back(json2lb(lb, dc));
     }
-  };
-  if (dc == ALL) {
-    for (auto dcToHit : dcNames)
-      fillInList(dcToHit.first);
-  } else {
-    fillInList(dc);
   }
-}
-
-const std::vector<LoadBalancer>& LoadBalancerService::list(Datacenter dc, bool forceRefresh) {
-  assert(dc != ALL); // This function doesn't work with 'ALL' because each vector of servers is stored separately
-  // Update the list with the API if needed
-  auto &destination = dc_to_lbs[dc];
-  if (forceRefresh || (destination.size() == 0))
-    updateLoadBalancerList(dc);
-  // Return the list
   return destination;
 }
 
+const std::vector<LoadBalancer> &LoadBalancerService::list(Datacenter dc,
+                                                           bool forceRefresh) {
+  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  return destination;
+}
+
+const LoadBalancer &LoadBalancerService::findByName(const std::string &name,
+                                                    Datacenter dc,
+                                                    bool forceRefresh) {
+  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  for (const LoadBalancer &lb : destination)
+    if (lb.name == name)
+      return lb;
+  std::stringstream msg;
+  msg << "Load balancer with name " << name << " in datacenter " << dcNames.at(dc)
+      << " couldn't be found";
+  throw std::runtime_error(msg.str());
+}
+
+const LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
+                                                  bool forceRefresh) {
+  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  for (const LoadBalancer &lb : destination)
+    if (lb.id == id)
+      return lb;
+  std::stringstream msg;
+  msg << "Load balancer with id " << id << " in datacenter " << dcNames.at(dc)
+      << " couldn't be found";
+  throw std::runtime_error(msg.str());
+}
 }
