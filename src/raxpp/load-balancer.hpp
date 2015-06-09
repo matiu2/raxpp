@@ -33,7 +33,7 @@ struct LoadBalancer {
     /// Protocol of the service that is being load balanced.
     std::string protocol;
     /// Port number for the service you are load balancing.
-    std::string port;
+    int port;
     /// Algorithm that defines how traffic should be directed between back-end nodes.
     std::string algorithm;
     /// The status of the load balancer.
@@ -51,8 +51,8 @@ struct LoadBalancer {
 struct LoadBalancerService {
   Rackspace& rs;
   std::map<Datacenter, std::string> dc_to_url; // Convert a datacenter to the base url
-  std::map<std::string, LoadBalancer> dc_to_lb; // Store the load balancers by their home DC
-  std::map<int, LoadBalancer&> lbs_by_name;
+  std::map<Datacenter, std::vector<LoadBalancer>>
+      dc_to_lbs; // Store the load balancers by their home DC
   LoadBalancerService(Rackspace& rs);
   /**
   * @brief List load balancers by datacenter
@@ -62,7 +62,7 @@ struct LoadBalancerService {
   *
   * @return 
   */
-  std::vector<LoadBalancer *> list(Datacenter dc, bool forceRefresh = false);
+  const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
 };
   
 }

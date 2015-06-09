@@ -2,25 +2,25 @@
 
 #include <json_class.hpp>
 #include <parse_to_json_class.hpp>
-#include <curlpp11.hpp>
 
 #include "utils.hpp"
 
 namespace raxpp {
 
-std::string login(const std::string& username, const std::string& apikey) {
+std::string Rackspace::login(const std::string& username, const std::string& apikey) {
   using namespace json;
-  JSON login(
+  json::JSON outgoing(
       JMap{{"auth", JMap{{"RAX-KSKEY:apiKeyCredentials",
                           JMap{{"username", username}, {"apiKey", apikey}}}}}});
   /// Connect
   std::stringstream stream;
   std::string reply;
-  stream << login;
-  curl::Easy client;
+  stream << outgoing;
   client.url("https://auth.api.rackspacecloud.com/v2.0/tokens")
-      //.setOpt(CURLOPT_VERBOSE)
-      .header("Accept: application/json")
+#ifdef DEBUG_CURL
+      .setOpt(CURLOPT_VERBOSE)
+#endif
+      .header("Accept: application/json")        // These hearders will stay on the connection forever
       .header("Content-type: application/json")
       .customBody(stream)
       .POST()
@@ -44,4 +44,23 @@ const json::JMap &Rackspace::getCatalog(const std::string &name) const {
   const json::JList &catalog = _json.at("access").at("serviceCatalog");
   return findInList(catalog, "name", name);
 }
+
+curl::Easy& Rackspace::request(const std::string& url) {
+  client.reset();
+  return client.url(url.c_str())
+#ifdef DEBUG_CURL
+      .setOpt(CURLOPT_VERBOSE)
+#endif
+      .header(std::string("X-Auth-Token: ") + _token)
+      .header("Accept: application/json") // These hearders will stay on the
+                                          // connection forever
+      .header("Content-type: application/json");
+}
+
+json::JSON Rackspace::get(const std::string& url) {
+  std::string reply;
+  request(url).perform(reply);
+  return json::readValue(reply.begin(), reply.end());
+}
+
 }

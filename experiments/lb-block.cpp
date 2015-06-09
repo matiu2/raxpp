@@ -8,6 +8,7 @@
 #include <vector>
 
 int main(int argc, char** argv) {
+  curl::GlobalSentry s;
   if (argc < 5) {
     std::cerr << "USAGE: " << argv[0] << " username apikey datacenter load-balancer-name ([DENY/ALLOW] network ...)" << std::endl
     << "Username: Your rackspace login username" << std::endl
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
   std::vector<std::string> toOpen;
   auto &currentList = toBlock;
   for (int i = 5; i < argc; ++i) {
-    const char *arg = argv[i];
+    std::string arg = argv[i];
     if (arg == "DENY")
       currentList = toBlock;
     else if (arg == "ALLOW")
@@ -41,7 +42,12 @@ int main(int argc, char** argv) {
   // Login to rackspace
   raxpp::Rackspace rs(username, apikey);
   // Create the load balancer service
-  raxpp::LoadBalancerService lbs(rs);
+  raxpp::LoadBalancerService service(rs);
+  auto lbs = service.list(raxpp::dcVals.at(dc));
+  using namespace std;
+  for (const auto& lb : lbs) {
+    cout << lb.name << ' ' << lb.id << endl;
+  }
 
   return 0;
 }
