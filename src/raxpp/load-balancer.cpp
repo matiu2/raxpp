@@ -61,7 +61,7 @@ LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
-const std::vector<LoadBalancer> &
+std::vector<LoadBalancer> &
 LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_listLoadBalancers_v1.0__account__loadbalancers_load-balancers.html
   // Request: GET /loadbalancers
@@ -79,17 +79,17 @@ LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   return destination;
 }
 
-const std::vector<LoadBalancer> &LoadBalancerService::list(Datacenter dc,
+std::vector<LoadBalancer> &LoadBalancerService::list(Datacenter dc,
                                                            bool forceRefresh) {
-  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  auto &destination = updateLoadBalancerList(dc, forceRefresh);
   return destination;
 }
 
-const LoadBalancer &LoadBalancerService::findByName(const std::string &name,
-                                                    Datacenter dc,
-                                                    bool forceRefresh) {
-  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
-  for (const LoadBalancer &lb : destination)
+LoadBalancer &LoadBalancerService::findByName(const std::string &name,
+                                              Datacenter dc,
+                                              bool forceRefresh) {
+  auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  for (LoadBalancer &lb : destination)
     if (lb.name == name)
       return lb;
   std::stringstream msg;
@@ -98,10 +98,10 @@ const LoadBalancer &LoadBalancerService::findByName(const std::string &name,
   throw std::runtime_error(msg.str());
 }
 
-const LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
-                                                  bool forceRefresh) {
-  const auto &destination = updateLoadBalancerList(dc, forceRefresh);
-  for (const LoadBalancer &lb : destination)
+LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
+                                            bool forceRefresh) {
+  auto &destination = updateLoadBalancerList(dc, forceRefresh);
+  for (LoadBalancer &lb : destination)
     if (lb.id == id)
       return lb;
   std::stringstream msg;

@@ -44,8 +44,9 @@ int main(int argc, char** argv) {
   raxpp::Rackspace rs(username, apikey);
   // Create the load balancer service
   raxpp::LoadBalancerService service(rs);
-  const auto& lb = service.findByName(lbName, dc);
+  // Get the load balancer we need
+  auto& lb = service.findByName(lbName, dc);
   std::cout << lb.name << ' ' << lb.id << std::endl;
-
+  // 
   return 0;
 }
