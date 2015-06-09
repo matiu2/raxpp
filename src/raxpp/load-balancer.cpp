@@ -19,6 +19,26 @@ LoadBalancerService::LoadBalancerService(Rackspace &rs) : rs(rs) {
 * @return A new LoadBalancer object
 */
 LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
+  // { "loadBalancers":[
+  //   {
+  //      "name":"lb-site1",
+  //      "id":71,
+  //      "protocol":"HTTP",
+  //       "port":80,
+  //       "algorithm":"RANDOM",
+  //       "status":"ACTIVE",
+  //       "nodeCount":3,
+  //       "virtualIps":[
+  //       {
+  //             "id":403,
+  //             "address":"206.55.130.1",
+  //             "type":"PUBLIC",
+  //             "ipVersion":"IPV4"
+  //       }
+  //       ],
+  //       "created":{ "time":"2010-11-30T03:23:42Z" },
+  //       "updated":{ "time":"2010-11-30T03:23:44Z" }
+  // },
   LoadBalancer result;
   result.dc = dc;
   result.name = json.at("name");
@@ -41,38 +61,34 @@ LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
-const std::vector<LoadBalancer>& LoadBalancerService::list(Datacenter dc, bool forceRefresh) {
+void LoadBalancerService::updateLoadBalancerList(Datacenter dc) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_listLoadBalancers_v1.0__account__loadbalancers_load-balancers.html
   // Request: GET /loadbalancers
-  // Response: 
-  // { "loadBalancers":[
-  //   {
-  //      "name":"lb-site1",
-  //      "id":71,
-  //      "protocol":"HTTP",
-  //       "port":80,
-  //       "algorithm":"RANDOM",
-  //       "status":"ACTIVE",
-  //       "nodeCount":3,
-  //       "virtualIps":[
-  //       {
-  //             "id":403,
-  //             "address":"206.55.130.1",
-  //             "type":"PUBLIC",
-  //             "ipVersion":"IPV4"
-  //       }
-  //       ],
-  //       "created":{ "time":"2010-11-30T03:23:42Z" },
-  //       "updated":{ "time":"2010-11-30T03:23:44Z" }
-  // },
-  // Do the request
-  auto& url = dc_to_url.at(dc);
-  auto lbs = rs.get(url + "/loadbalancers");
-  // Fill in our results
-  auto& destination = dc_to_lbs[dc];
-  for (auto &lb : (json::JList &)lbs.at("loadBalancers")) {
-    destination.emplace_back(json2lb(lb, dc));
+  auto fillInList = [this](Datacenter dc) {
+    // Do the request
+    auto &url = dc_to_url.at(dc);
+    auto lbs = rs.get(url + "/loadbalancers");
+    // Fill in our results
+    auto &destination = dc_to_lbs[dc];
+    for (auto &lb : (json::JList &)lbs.at("loadBalancers")) {
+      destination.emplace_back(json2lb(lb, dc));
+    }
+  };
+  if (dc == ALL) {
+    for (auto dcToHit : dcNames)
+      fillInList(dcToHit.first);
+  } else {
+    fillInList(dc);
   }
+}
+
+const std::vector<LoadBalancer>& LoadBalancerService::list(Datacenter dc, bool forceRefresh) {
+  assert(dc != ALL); // This function doesn't work with 'ALL' because each vector of servers is stored separately
+  // Update the list with the API if needed
+  auto &destination = dc_to_lbs[dc];
+  if (forceRefresh || (destination.size() == 0))
+    updateLoadBalancerList(dc);
+  // Return the list
   return destination;
 }
 

@@ -48,11 +48,15 @@ struct LoadBalancer {
     std::vector<VirtualIP> virtualIps;
 };
 
-struct LoadBalancerService {
+class LoadBalancerService {
+private:
   Rackspace& rs;
   std::map<Datacenter, std::string> dc_to_url; // Convert a datacenter to the base url
   std::map<Datacenter, std::vector<LoadBalancer>>
       dc_to_lbs; // Store the load balancers by their home DC
+  /// Updates a list of load balancers via the API
+  void updateLoadBalancerList(Datacenter dc=ALL);
+public:
   LoadBalancerService(Rackspace& rs);
   /**
   * @brief List load balancers by datacenter
@@ -63,6 +67,8 @@ struct LoadBalancerService {
   * @return 
   */
   const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
+  const LoadBalancer& findByName(const std::string& name, Datacenter dc=ALL, bool forceRefresh = false);
+  const LoadBalancer& findById(const std::string& name, Datacenter dc=ALL, bool forceRefresh = false);
 };
   
 }
