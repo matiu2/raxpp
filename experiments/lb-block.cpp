@@ -46,8 +46,40 @@ int main(int argc, char** argv) {
   raxpp::LoadBalancerService service(rs);
   // Get the load balancer we need
   auto& lb = service.findByName(lbName, dc);
-  std::cout << lb.name << ' ' << lb.id << std::endl;
+  // Get the existing access list
   auto accessList = service.getAccessList(lb);
+  std::map<std::string, raxpp::AccessListItem*> accessMap;
+  for (auto& item : accessList)
+    accessMap[item.address] = &item;
+  std::vector<int> itemsToDelete;
+  std::vector<std::string> addressesToAdd;
+  // Check the IPs we have to deny
+  for (const std::string &ip : toBlock) {
+    // If it's already in the list
+    auto found = accessMap.find(ip);
+    if (found != accessMap.end()) {
+      // And the list has it as allow,
+      if (found->second->type == raxpp::AccessListItem::ALLOW)
+        // Remove it
+        itemsToDelete.push_back(found->second->id);
+    } else {
+      // If it's not in the list, add it later
+      addressesToAdd.push_back(ip);
+    }
+  }
+  // Go through the list of IPs to allow
+  for (const std::string &ip : toOpen) {
+    // If it's in the list already
+    auto found = accessMap.find(ip);
+    if (found != accessMap.end()) {
+      // And the list has it as DENY,
+      if (found->second->type == raxpp::AccessListItem::DENY)
+        // Remove it
+        itemsToDelete.push_back(found->second->id);
+    }
+  }
+  // Now run through our actions
+  service.deleteAccessListItems(lb, itemsToDelete);
   for (auto& item : accessList) {
     std::cout << "ID: " << item.id << std::endl
     << "address: " << item.address << std::endl
@@ -64,5 +96,6 @@ int main(int argc, char** argv) {
     }
     std::cout << std::endl << std::endl;
   }
+  // 
   return 0;
 }

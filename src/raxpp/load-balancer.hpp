@@ -80,6 +80,10 @@ public:
   const LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
   /// Returns the access list for a load balancer .. gets it straight form the API (no caching)
   AccessList getAccessList(const LoadBalancer& lb);
+  /// Delete items from an access list (will be run in batches of 10)
+  void deleteAccessListItems(const LoadBalancer& lb, const std::vector<int> &itemsToDelete);
+
+
 };
   
 }

@@ -63,4 +63,13 @@ json::JSON Rackspace::get(const std::string& url) {
   return json::readValue(reply.begin(), reply.end());
 }
 
+int Rackspace::del(const std::string& url) {
+  client.reset();
+  return client.url(url.c_str())
+      .header(std::string("X-Auth-Token: ") + _token)
+      .DELETE()
+      .perform()
+      .responseCode();
+}
+
 }

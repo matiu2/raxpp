@@ -147,4 +147,9 @@ AccessList LoadBalancerService::getAccessList(const LoadBalancer& lb) {
   return result;
 }
 
+void LoadBalancerService::deleteAccessListItems(const LoadBalancer& lb, const std::vector<int> &itemsToDelete) {
+  std::vector<int> batch;
+
+}
+
 }

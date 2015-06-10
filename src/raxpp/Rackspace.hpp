@@ -22,6 +22,8 @@ public:
   curl::Easy& request(const std::string& url);
   /// Perform a get to a URL, and get the reply in json format
   json::JSON get(const std::string& url);
+  /// Perform an HTTP delete. Returns the http response code.
+  int del(const std::string& url);
 };
 
 }
