@@ -1,3 +1,3 @@
 project(model)
 
-add_library(model datacenters.cpp)
+add_library(model Datacenter.cpp)
