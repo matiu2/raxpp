@@ -20,6 +20,7 @@ ExternalProject_Add(jsonpp11
     GIT_REPOSITORY https://github.com/matiu2/jsonpp11.git
     TLS_VERIFY true
     TLS_CAINFO certs/DigiCertHighAssuranceEVRootCA.crt
+    BUILD_COMMAND make
     TEST_BEFORE_INSTALL 0
     TEST_COMMAND ctest
     UPDATE_COMMAND "" # Skip annoying updates for every build
@@ -38,6 +39,7 @@ ExternalProject_Add(curlpp11
     GIT_REPOSITORY https://github.com/matiu2/curlpp11.git
     TLS_VERIFY true
     TLS_CAINFO certs/DigiCertHighAssuranceEVRootCA.crt
+    BUILD_COMMAND make
     TEST_BEFORE_INSTALL 0
     TEST_COMMAND ctest
     UPDATE_COMMAND "" # Skip annoying updates for every build

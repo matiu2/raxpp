@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   std::string apikey = argv[2];
   std::string dcName = argv[3];
   std::string lbName = argv[4];
-  raxpp::Datacenter dc = raxpp::dcVals.at(dcName);
+  raxpp::model::Datacenter dc = raxpp::model::dcVals.at(dcName);
   // Make lists of IPs to block/open
   std::vector<std::string> toBlock;
   std::vector<std::string> toOpen;
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   auto& lb = service.findByName(lbName, dc);
   // Get the existing access list
   auto accessList = service.getAccessList(lb);
-  std::map<std::string, raxpp::AccessListItem*> accessMap;
+  std::map<std::string, raxpp::model::AccessListItem*> accessMap;
   for (auto& item : accessList)
     accessMap[item.address] = &item;
   std::vector<int> itemsToDelete;
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     auto found = accessMap.find(ip);
     if (found != accessMap.end()) {
       // And the list has it as allow,
-      if (found->second->type == raxpp::AccessListItem::ALLOW)
+      if (found->second->type == raxpp::model::AccessListItem::ALLOW)
         // Remove it
         itemsToDelete.push_back(found->second->id);
     } else {
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     auto found = accessMap.find(ip);
     if (found != accessMap.end()) {
       // And the list has it as DENY,
-      if (found->second->type == raxpp::AccessListItem::DENY)
+      if (found->second->type == raxpp::model::AccessListItem::DENY)
         // Remove it
         itemsToDelete.push_back(found->second->id);
     }
@@ -85,11 +85,11 @@ int main(int argc, char** argv) {
     << "address: " << item.address << std::endl
     << "Type: ";
     switch (item.type) {
-      case raxpp::AccessListItem::DENY: {
+      case raxpp::model::AccessListItem::DENY: {
         std::cout << "Deny";
         break;
       }
-      case raxpp::AccessListItem::ALLOW: {
+      case raxpp::model::AccessListItem::ALLOW: {
         std::cout << "Allow";
         break;
       }

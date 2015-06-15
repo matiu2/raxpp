@@ -4,67 +4,20 @@
 #include <vector>
 #include <map>
 
-#include "datacenters.hpp"
+#include "model/datacenters.hpp"
+#include "model/LoadBalancer.hpp"
 #include <raxpp/Rackspace.hpp>
 
 namespace raxpp {
 
-struct VirtualIP {
-  /// The ID for the IP address.
-  int id;
-  /// The IP address.
-  std::string address;
-  /// The IP address type. See the Virtual IP Types table in the Chapter 4
-  /// section "Virtual IPs".
-  std::string type;
-  /// The IP version.
-  std::string ipVersion;
-  operator std::string& () { return address; }
-  operator const std::string& () const { return address; }
-};
-
-struct LoadBalancer {
-    /// Which DC is the LB from
-    Datacenter dc;
-    /// Name of the load balancer to create. The name must be 128 characters or fewer in length, and all UTF-8 characters are valid. See http://www.utf8-chartable.de/ for information about the UTF-8 character set.
-    std::string name;
-    /// The ID for the load balancer.
-    int id;
-    /// Protocol of the service that is being load balanced.
-    std::string protocol;
-    /// Port number for the service you are load balancing.
-    int port;
-    /// Algorithm that defines how traffic should be directed between back-end nodes.
-    std::string algorithm;
-    /// The status of the load balancer.
-    std::string status;
-    /// The number of load balancer nodes.
-    int nodeCount;
-    /// The date and time what the load balancer was created.
-    std::string created;
-    /// The date and time what the load balancer was last updated.
-    std::string updated;
-    /// The list of virtualIps for a load balancer.
-    std::vector<VirtualIP> virtualIps;
-};
-
-struct AccessListItem {
-  enum Type {DENY, ALLOW};
-  int id;
-  std::string address;
-  Type type;
-};
-
-using AccessList = std::vector<AccessListItem>;
-
 class LoadBalancerService {
 private:
   Rackspace& rs;
-  std::map<Datacenter, std::string> dc_to_url; // Convert a datacenter to the base url
-  std::map<Datacenter, std::vector<LoadBalancer>>
+  std::map<model::Datacenter, std::string> dc_to_url; // Convert a datacenter to the base url
+  std::map<model::Datacenter, std::vector<model::LoadBalancer>>
       dc_to_lbs; // Store the load balancers by their home DC
   /// Updates a list of load balancers via the API
-  const std::vector<LoadBalancer>& updateLoadBalancerList(Datacenter dc, bool forceRefresh);
+  const std::vector<model::LoadBalancer>& updateLoadBalancerList(model::Datacenter dc, bool forceRefresh);
 public:
   LoadBalancerService(Rackspace& rs);
   /**
@@ -75,13 +28,13 @@ public:
   *
   * @return 
   */
-  const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
-  const LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
-  const LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
+  const std::vector<model::LoadBalancer>& list(model::Datacenter dc, bool forceRefresh = false);
+  const model::LoadBalancer& findByName(const std::string& name, model::Datacenter dc, bool forceRefresh = false);
+  const model::LoadBalancer& findById(int id, model::Datacenter dc, bool forceRefresh = false);
   /// Returns the access list for a load balancer .. gets it straight form the API (no caching)
-  AccessList getAccessList(const LoadBalancer& lb);
+  model::AccessList getAccessList(const model::LoadBalancer& lb);
   /// Delete items from an access list (will be run in batches of 10)
-  void deleteAccessListItems(const LoadBalancer& lb, const std::vector<int> &itemsToDelete);
+  void deleteAccessListItems(const model::LoadBalancer& lb, const std::vector<int> &itemsToDelete);
 
 
 };

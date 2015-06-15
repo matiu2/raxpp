@@ -13,4 +13,5 @@ include(cmake/dependencies.cmake)
 
 include_directories(${JSONPP11_SOURCE_DIR} ${CURLPP11_SOURCE_DIR} ${CURL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 
+add_subdirectory(src)
 add_subdirectory(experiments)
