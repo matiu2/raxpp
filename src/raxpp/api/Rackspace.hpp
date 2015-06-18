@@ -5,6 +5,7 @@
 #include <curlpp11.hpp>
 
 namespace raxpp {
+namespace api {
 
 class Rackspace {
 private:
@@ -26,4 +27,5 @@ public:
   int del(const std::string& url);
 };
 
+}
 }

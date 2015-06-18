@@ -1,11 +1,11 @@
 #include "Rackspace.hpp"
 
-#include <json_class.hpp>
 #include <parse_to_json_class.hpp>
 
 #include "utils.hpp"
 
 namespace raxpp {
+namespace api {
 
 std::string Rackspace::login(const std::string& username, const std::string& apikey) {
   using namespace json;
@@ -72,4 +72,5 @@ int Rackspace::del(const std::string& url) {
       .responseCode();
 }
 
+}
 }

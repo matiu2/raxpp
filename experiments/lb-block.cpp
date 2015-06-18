@@ -1,7 +1,7 @@
 /// Blocks and opens IP ranges in a load balancer
 
-#include <raxpp/Rackspace.hpp>
-#include <raxpp/load-balancer.hpp>
+#include <raxpp/api/Rackspace.hpp>
+#include <raxpp/services/LoadBalancer.hpp>
 
 #include <string>
 #include <iostream>
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   std::string apikey = argv[2];
   std::string dcName = argv[3];
   std::string lbName = argv[4];
-  raxpp::model::Datacenter dc = raxpp::model::dcVals.at(dcName);
+  raxpp::Datacenter dc = raxpp::name2dc(dcName);
   // Make lists of IPs to block/open
   std::vector<std::string> toBlock;
   std::vector<std::string> toOpen;
@@ -41,9 +41,9 @@ int main(int argc, char** argv) {
       currentList.push_back(arg);
   }
   // Login to rackspace
-  raxpp::Rackspace rs(username, apikey);
+  raxpp::api::Rackspace rs(username, apikey);
   // Create the load balancer service
-  raxpp::LoadBalancerService service(rs);
+  raxpp::services::LoadBalancer service(rs);
   // Get the load balancer we need
   auto& lb = service.findByName(lbName, dc);
   // Get the existing access list

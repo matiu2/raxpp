@@ -3,7 +3,7 @@
 namespace raxpp {
 namespace json_conversion {
 
-model::LoadBalancer json2lb(json::JSON &json, model::Datacenter dc) {
+model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   // { "loadBalancers":[
   //   {
   //      "name":"lb-site1",

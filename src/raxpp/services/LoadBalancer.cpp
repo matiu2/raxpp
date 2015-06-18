@@ -1,15 +1,14 @@
-#include "load-balancer.hpp"
+#include "LoadBalancer.hpp"
 
 #include <raxpp/json-conversion/LoadBalancer.hpp>
 
 namespace raxpp {
+namespace services {
 
-using model::LoadBalancer;
 using model::AccessList;
 using model::AccessListItem;
-using model::Datacenter;
 
-LoadBalancerService::LoadBalancerService(Rackspace &rs) : rs(rs) {
+LoadBalancer::LoadBalancer(Rackspace &rs) : rs(rs) {
   using namespace json;
   const JList &endpoints = rs.getCatalog("cloudLoadBalancers").at("endpoints");
   for (const JMap &endpoint : endpoints) {
@@ -19,7 +18,7 @@ LoadBalancerService::LoadBalancerService(Rackspace &rs) : rs(rs) {
 }
 
 const std::vector<LoadBalancer> &
-LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
+LoadBalancer::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_listLoadBalancers_v1.0__account__loadbalancers_load-balancers.html
   // Request: GET /loadbalancers
   // Fill in our results
@@ -27,6 +26,7 @@ LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   if (forceRefresh || (destination.size() == 0)) {
     // Do the request
     auto &url = dc_to_url.at(dc);
+
     auto lbs = rs.get(url + "/loadbalancers");
     for (auto &lb : (json::JList &)lbs.at("loadBalancers")) {
       destination.emplace_back(json_conversion::json2lb(lb, dc));
@@ -35,13 +35,13 @@ LoadBalancerService::updateLoadBalancerList(Datacenter dc, bool forceRefresh) {
   return destination;
 }
 
-const std::vector<LoadBalancer> &LoadBalancerService::list(Datacenter dc,
+const std::vector<LoadBalancer> &LoadBalancer::list(Datacenter dc,
                                                            bool forceRefresh) {
   const auto &destination = updateLoadBalancerList(dc, forceRefresh);
   return destination;
 }
 
-const LoadBalancer &LoadBalancerService::findByName(const std::string &name,
+const LoadBalancer &LoadBalancer::findByName(const std::string &name,
                                                     Datacenter dc,
                                                     bool forceRefresh) {
   const auto &destination = updateLoadBalancerList(dc, forceRefresh);
@@ -54,7 +54,7 @@ const LoadBalancer &LoadBalancerService::findByName(const std::string &name,
   throw std::runtime_error(msg.str());
 }
 
-const LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
+const LoadBalancer &LoadBalancer::findById(int id, Datacenter dc,
                                                   bool forceRefresh) {
   const auto &destination = updateLoadBalancerList(dc, forceRefresh);
   for (const LoadBalancer &lb : destination)
@@ -66,7 +66,7 @@ const LoadBalancer &LoadBalancerService::findById(int id, Datacenter dc,
   throw std::runtime_error(msg.str());
 }
 
-AccessList LoadBalancerService::getAccessList(const LoadBalancer& lb) {
+AccessList LoadBalancer::getAccessList(const LoadBalancer& lb) {
   /* Result format:
       {
         "accessList": [
@@ -104,9 +104,10 @@ AccessList LoadBalancerService::getAccessList(const LoadBalancer& lb) {
   return result;
 }
 
-void LoadBalancerService::deleteAccessListItems(const LoadBalancer& lb, const std::vector<int> &itemsToDelete) {
+void LoadBalancer::deleteAccessListItems(const LoadBalancer& lb, const std::vector<int> &itemsToDelete) {
   std::vector<int> batch;
 
 }
 
+}
 }

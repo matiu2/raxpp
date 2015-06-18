@@ -1,5 +1,4 @@
 
-
 include(ExternalProject)
 
 ## Bandit (for tests)
@@ -34,7 +33,7 @@ SET(JSONPP11_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/jsonpp11/src)
 FIND_PACKAGE(CURL REQUIRED)
 FIND_PACKAGE(OpenSSL REQUIRED)
 
-ExternalProject_Add(curlpp11
+ExternalProject_Add(curlpp11_ext_proj
     PREFIX 3rd_party
     GIT_REPOSITORY https://github.com/matiu2/curlpp11.git
     TLS_VERIFY true
@@ -45,5 +44,7 @@ ExternalProject_Add(curlpp11
     UPDATE_COMMAND "" # Skip annoying updates for every build
     INSTALL_COMMAND ""
 )
-SET(CURLPP11_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/curlpp11/src)
-set(CURLPP11_FILE ${CURLPP11_SOURCE_DIR}/curlpp11.cpp)
+SET(CURLPP11_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/curlpp11_ext_proj/src)
+SET(CURLPP11_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/curlpp11_ext_proj-build/src)
+add_library(curlpp11 STATIC IMPORTED)
+set_target_properties(curlpp11 PROPERTIES IMPORTED_LOCATION ${CURLPP11_BUILD_DIR}/libcurlpp11.a)

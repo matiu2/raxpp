@@ -2,10 +2,10 @@
 #pragma once
 
 #include <stdexcept>
-
 #include <json_class.hpp>
 
 namespace raxpp {
+namespace api {
 
 /**
 * @brief Finds a 
@@ -27,5 +27,6 @@ inline const json::JMap &findInList(const json::JList &input,
       return j;
   throw std::runtime_error(std::string("Expected to find ") + attribute +
                            " but it was not found");
+}
 }
 }

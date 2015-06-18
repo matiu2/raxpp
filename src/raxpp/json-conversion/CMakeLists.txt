@@ -1,3 +1,4 @@
 project(json-conversion)
 
-add_library(json_convesion LoadBalancer.cpp)
+add_library(json-conversion LoadBalancer.cpp)
+target_link_libraries(json-conversion base)

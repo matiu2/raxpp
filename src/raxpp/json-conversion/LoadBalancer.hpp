@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../model/LoadBalancer.hpp"
+#include <raxpp/base/Datacenter.hpp>
+#include <raxpp/model/LoadBalancer.hpp>
 
 #include <json_class.hpp>
 #include <parse_to_json_class.hpp>
@@ -15,7 +16,7 @@ namespace json_conversion {
 *
 * @return A new LoadBalancer object
 */
-model::LoadBalancer json2lb(json::JSON &json, model::Datacenter dc);
+model::LoadBalancer json2lb(json::JSON &json, Datacenter dc);
 
 }
 }
