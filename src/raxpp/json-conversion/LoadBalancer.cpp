@@ -46,4 +46,25 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
+model::AccessList json2accessList(json::JList &json) {
+  model::AccessList result;
+  for (auto &item : json) {
+    model::AccessListItem output;
+    output.id = (int)item.at("id");
+    output.address = item.at("address");
+    std::string type = item.at("type");
+    if (type == "DENY")
+      output.type = model::AccessListItem::DENY;
+    else if (type == "ALLOW")
+      output.type = model::AccessListItem::ALLOW;
+    else {
+      std::stringstream msg;
+      msg << "Unknown access list item type: " << type
+          << " for AccessList Item ID " << output.id;
+      throw std::runtime_error(msg.str());
+    }
+    result.emplace_back(std::move(output));
+  }
+  return std::move(result);
+}
 }}

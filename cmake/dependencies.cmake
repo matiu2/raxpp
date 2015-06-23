@@ -48,3 +48,8 @@ SET(CURLPP11_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/curlpp11_ext_p
 SET(CURLPP11_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/curlpp11_ext_proj-build/src)
 add_library(curlpp11 STATIC IMPORTED)
 set_target_properties(curlpp11 PROPERTIES IMPORTED_LOCATION ${CURLPP11_BUILD_DIR}/libcurlpp11.a)
+
+## LLVM LibC++
+find_library(LIB_CPP c++)
+find_path(CPP_PREFIX c++/v1)
+include_directories(${CPP_PREFIX}/c++/v1)

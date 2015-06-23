@@ -1,7 +1,7 @@
 /// Blocks and opens IP ranges in a load balancer
 
 #include <raxpp/api/Rackspace.hpp>
-#include <raxpp/services/LoadBalancer.hpp>
+#include <raxpp/LoadBalancers.hpp>
 
 #include <string>
 #include <iostream>
@@ -43,13 +43,13 @@ int main(int argc, char** argv) {
   // Login to rackspace
   raxpp::api::Rackspace rs(username, apikey);
   // Create the load balancer service
-  raxpp::services::LoadBalancer service(rs);
+  raxpp::LoadBalancers loadBalancers(rs);
   // Get the load balancer we need
-  auto& lb = service.findByName(lbName, dc);
+  auto& lb = loadBalancers.findByName(lbName, dc);
   // Get the existing access list
-  auto accessList = service.getAccessList(lb);
+  auto& accessList = lb.getAccessList();
   std::map<std::string, raxpp::model::AccessListItem*> accessMap;
-  for (auto& item : accessList)
+  for (auto& item : accessList.model)
     accessMap[item.address] = &item;
   std::vector<int> itemsToDelete;
   std::vector<std::string> addressesToAdd;
@@ -79,8 +79,8 @@ int main(int argc, char** argv) {
     }
   }
   // Now run through our actions
-  service.deleteAccessListItems(lb, itemsToDelete);
-  for (auto& item : accessList) {
+  accessList.deleteItems(itemsToDelete);
+  for (auto& item : accessList.model) {
     std::cout << "ID: " << item.id << std::endl
     << "address: " << item.address << std::endl
     << "Type: ";

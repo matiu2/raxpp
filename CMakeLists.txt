@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project (raxpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+add_definitions(-fPIC)
 
 option(DEBUG_CURL "Turn on verbose logging for curl" OFF)
 if (${DEBUG_CURL})

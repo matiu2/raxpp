@@ -18,5 +18,7 @@ namespace json_conversion {
 */
 model::LoadBalancer json2lb(json::JSON &json, Datacenter dc);
 
+model::AccessList json2accessList(json::JList &json);
+
 }
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <raxpp/base/Datacenter.hpp>
 
@@ -22,6 +23,15 @@ struct VirtualIP {
   operator std::string& () { return address; }
   operator const std::string& () const { return address; }
 };
+
+struct AccessListItem {
+  enum Type {DENY, ALLOW};
+  int id;
+  std::string address;
+  Type type;
+};
+
+using AccessList = std::vector<AccessListItem>;
 
 struct LoadBalancer {
     /// Which DC is the LB from
@@ -46,16 +56,16 @@ struct LoadBalancer {
     std::string updated;
     /// The list of virtualIps for a load balancer.
     std::vector<VirtualIP> virtualIps;
+    /// The access list (firewall like thing) - This is gotten through a second
+    /// request, so an empty pointer means it hasn't been retrieved yet
+    std::unique_ptr<AccessList> accessList;
+    /// Ensures that an accessList exists, and returns a reference to it
+    void setAccessList(model::AccessList&& input) {
+      if (!accessList)
+        accessList.reset(new AccessList);
+      *accessList = input;
+    }
 };
-
-struct AccessListItem {
-  enum Type {DENY, ALLOW};
-  int id;
-  std::string address;
-  Type type;
-};
-
-using AccessList = std::vector<AccessListItem>;
 
 }
 }
