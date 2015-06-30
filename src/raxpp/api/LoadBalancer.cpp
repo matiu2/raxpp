@@ -1,5 +1,6 @@
 #include "LoadBalancer.hpp"
 
+#include "HTTPCodeHandler.hpp"
 #include <sstream>
 
 namespace raxpp {
@@ -26,6 +27,41 @@ json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const
   return rs.get(url.str()).at("accessList");
 }
 
+HTTPCodeHandler const deleteAccessListItemsResponseHandler{
+    {202}, // Good codes
+    {{400, "Load Balancer Fault / Bad Request"},
+     {500, "Load Balancer Fault"},
+     {503, "Service Unavailable"},
+     {401, "Unauthorized - Check authentication token"},
+     {413, "Over Limit - Wait, and try later"},
+     {404, "Load balancer / Access List not found - Check the name"}}};
 
+void
+LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
+                                    int accessListID,
+                                    const std::vector<int> &idsToDelete) const {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/DELETE_bulkDeleteNetworks_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
+  constexpr int batchSize = 10;
+  // Delete IDs in batches of 10
+  std::vector<int> batch;
+  batch.reserve(batchSize);
+  std::stringstream urlBase;
+  urlBase << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID
+          << "/accesslist/" << accessListID
+          << "?networkItemId=";
+  auto item = idsToDelete.cbegin();
+  auto end = idsToDelete.cend();
+  while (item != end) {
+    std::stringstream url;
+    url << urlBase.str();
+    // We have to delete in batches of 10 or the API freaks out
+    for (int i=0; i<batchSize; ++i)  {
+      if (item == end)
+        break;
+      url << (*item) << ',';
+    }
+    rs.del(url.str());
+  }
+}
 }
 }

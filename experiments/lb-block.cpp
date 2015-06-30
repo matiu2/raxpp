@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
   std::map<std::string, raxpp::model::AccessListItem*> accessMap;
   for (auto& item : accessList.model)
     accessMap[item.address] = &item;
-  std::vector<int> itemsToDelete;
-  std::vector<std::string> addressesToAdd;
+  std::vector<int> itemsToDelete; // Things we need to delete from the list
+  std::vector<std::string> addressesToAdd; // Things we need to add to the list
   // Check the IPs we have to deny
   for (const std::string &ip : toBlock) {
     // If it's already in the list

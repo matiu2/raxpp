@@ -52,8 +52,7 @@ curl::Easy& Rackspace::request(const std::string& url) {
       .setOpt(CURLOPT_VERBOSE)
 #endif
       .header(std::string("X-Auth-Token: ") + _token)
-      .header("Accept: application/json") // These hearders will stay on the
-                                          // connection forever
+      .header("Accept: application/json")
       .header("Content-type: application/json");
 }
 
