@@ -27,7 +27,7 @@ json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const
   return rs.get(url.str()).at("accessList");
 }
 
-HTTPCodeHandler const deleteAccessListItemsResponseHandler{
+HTTPCodeHandler const check_deleteAccessListItems {
     {202}, // Good codes
     {{400, "Load Balancer Fault / Bad Request"},
      {500, "Load Balancer Fault"},
@@ -38,16 +38,13 @@ HTTPCodeHandler const deleteAccessListItemsResponseHandler{
 
 void
 LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
-                                    int accessListID,
                                     const std::vector<int> &idsToDelete) const {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/DELETE_bulkDeleteNetworks_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
-  constexpr int batchSize = 10;
   // Delete IDs in batches of 10
-  std::vector<int> batch;
-  batch.reserve(batchSize);
+  constexpr int batchSize = 10;
   std::stringstream urlBase;
   urlBase << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID
-          << "/accesslist/" << accessListID
+          << "/accesslist" 
           << "?networkItemId=";
   auto item = idsToDelete.cbegin();
   auto end = idsToDelete.cend();
@@ -60,8 +57,16 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
         break;
       url << (*item) << ',';
     }
-    rs.del(url.str());
+    int response = rs.del(url.str());
+    if (!check_deleteAccessListItems.isGoodCode(response)) {
+      std::stringstream msg;
+      msg << "From sending this url: " << url.str();
+      check_deleteAccessListItems(response, msg.str());
+    } else {
+      check_deleteAccessListItems(response);
+    }
   }
 }
+
 }
 }

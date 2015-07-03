@@ -14,9 +14,8 @@ class AccessList {
 private:
   const api::LoadBalancer& api;
 public:
-  AccessList(const api::LoadBalancer &api, raxpp::model::AccessList &model)
-      : api(api), model(model) {}
-  raxpp::model::AccessList& model;
+  AccessList(const api::LoadBalancer &api, raxpp::model::LoadBalancer &model);
+  raxpp::model::LoadBalancer& model;
   /// Delete items from an access list (will be run in batches of 10)
   void deleteItems(const std::vector<int> &itemsToDelete);
 };

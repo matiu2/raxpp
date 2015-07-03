@@ -19,6 +19,7 @@ struct HTTPCodeHandler {
   /// Chceks the http response code and throws an exception if it's an error, on
   /// unkown response code
   void operator ()(int code, const std::string& context="") const;
+  bool isGoodCode(int code) const;
 };
 
 

@@ -39,7 +39,6 @@ public:
   json::JList getAccessList(Datacenter dc, int loadBalancerID) const;
   /// Delete Access List Items from a load balancer
   void deleteAccessListItems(Datacenter dc, int loadBalancerID,
-                             int accessListID,
                              const std::vector<int> &idsToDelete) const;
 };
 

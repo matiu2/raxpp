@@ -62,8 +62,7 @@ struct LoadBalancer {
     /// Ensures that an accessList exists, and returns a reference to it
     void setAccessList(model::AccessList&& input) {
       if (!accessList)
-        accessList.reset(new AccessList);
-      *accessList = input;
+        accessList.reset(new AccessList(input));
     }
 };
 
