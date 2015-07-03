@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   // Get the existing access list
   auto& accessList = lb.getAccessList();
   std::map<std::string, raxpp::model::AccessListItem*> accessMap;
-  for (auto& item : *accessList.model.accessList)
+  for (auto& item : accessList)
     accessMap[item.address] = &item;
   std::vector<int> itemsToDelete; // Things we need to delete from the list
   std::vector<std::string> addressesToAdd; // Things we need to add to the list
@@ -79,8 +79,9 @@ int main(int argc, char** argv) {
     }
   }
   // Now run through our actions
-  accessList.deleteItems(itemsToDelete);
-  for (auto& item : *accessList.model.accessList) {
+  lb.deleteAccessListItems(itemsToDelete);
+  accessList = lb.getAccessList(true);
+  for (auto& item : accessList) {
     std::cout << "ID: " << item.id << std::endl
     << "address: " << item.address << std::endl
     << "Type: ";
