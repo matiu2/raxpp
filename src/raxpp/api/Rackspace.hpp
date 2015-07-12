@@ -11,7 +11,7 @@ namespace api {
 using CodeProcessor = std::function<void(int)>;
 
 /// Default code processor does nothing
-void defaultCodeProcessor(int code) {}
+inline void defaultCodeProcessor(int code) {}
 
 class Rackspace {
 private:

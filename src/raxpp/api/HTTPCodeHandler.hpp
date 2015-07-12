@@ -30,8 +30,8 @@ struct OnTheFlyContext {
   void operator()(int code) { handler(code, getContext()); }
 };
 
-OnTheFlyContext addContext(const HTTPCodeHandler &handler,
-                           std::function<std::string()> getContext) {
+inline OnTheFlyContext addContext(const HTTPCodeHandler &handler,
+                                  std::function<std::string()> getContext) {
   return {handler, getContext};
 }
 }
