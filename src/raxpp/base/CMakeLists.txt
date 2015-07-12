@@ -1,4 +1,6 @@
 project(base)
 
 add_library(base Datacenter.cpp)
-target_link_libraries(base ${LIB_CPP})
+if (${CPP14})
+  target_link_libraries(base ${LIB_CPP})
+endif()

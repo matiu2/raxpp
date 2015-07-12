@@ -3,7 +3,7 @@
 namespace raxpp {
 namespace json_conversion {
 
-model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
+model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc) {
   // { "loadBalancers":[
   //   {
   //      "name":"lb-site1",
@@ -35,7 +35,8 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   result.nodeCount = (int)json.at("nodeCount");
   result.created = json.at("created").at("time");
   result.updated = json.at("updated").at("time");
-  for (json::JMap &vip : static_cast<json::JList &>(json.at("virtualIps"))) {
+  for (const json::JMap &vip :
+       static_cast<const json::JList &>(json.at("virtualIps"))) {
     model::VirtualIP ip;
     ip.id = (int)vip.at("id");
     ip.address = vip.at("address");
