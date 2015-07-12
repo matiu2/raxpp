@@ -46,6 +46,30 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
+json::JList newNodes2json(const std::vector<model::NewNode> &nodes) {
+  json::JList result;
+  for (const auto &node : nodes) {
+    json::JMap data{{"address", node.address},
+                    {"port", node.port},
+                    {"condition", node.condition == model::NewNode::ENABLED
+                                      ? "ENABLED"
+                                      : "DRAINING"},
+                    {"weight", node.weight}};
+    switch (node.type) {
+    case model::NewNode::NOT_SET:
+      break;
+    case model::NewNode::PRIMARY:
+      data["type"] = "PRIMARY";
+      break;
+    case model::NewNode::SECONDARY:
+      data["type"] = "SECONDARY";
+      break;
+    };
+    result.emplace_back(std::move(data));
+  }
+  return std::move(result);
+}
+
 json::JMap lb2json(const model::NewLoadBalancer& model) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
   // { "loadBalancer": {
@@ -81,28 +105,40 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
   // port String (Optional) Port number for the service you are load balancing.  
   // timeout String (Optional) The timeout value for the load balancer and communications with its nodes. Defaults to 30 seconds with a maximum of 120 seconds.  
   // sessionPersistence String (Optional) Specifies whether multiple requests from clients are directed to the same node.  
-  // httpsRedirect Boolean (Optional) Enables or disables HTTP to HTTPS redirection for the load balancer. When enabled, any HTTP request returns status code 301 (Moved Permanently), and the requester is redirected to the requested URL via the HTTPS protocol on port 443. For example, http://example.com/page.html would be redirected to https://example.com/page.html. Only available for HTTPS protocol (port=443), or HTTP protocol with a properly configured SSL termination (secureTrafficOnly=true, securePort=443).  
-  std::stringstream port;
-  port << model.port;
+  // httpsRedirect Boolean (Optional) Enables or disables HTTP to HTTPS redirection for the load balancer. When enabled, any HTTP request returns status code 301 (Moved Permanently), and the requester is redirected to the requested URL via the HTTPS protocol on port 443. For example, http://example.com/page.html would be redirected to https://example.com/page.html. Only available for HTTPS protocol (port=443), or HTTP protocol with a properly configured SSL termination (secureTrafficOnly=true, securePort=443).
   using namespace json;
-  return {
-      {"loadBalancer", JMap{{"name", model.name},
-                            {"nodes", nodes2json(model.nodes)},
-                            {"protocol", model.protocol},
-                            {"halfClosed", model.halfClosed},
-                            {"virtualIps", virtualIPs2json(model.virtualIps)},
-                            {"accessList", accessList2string(model.accessList)},
-                            {"algorithm", model.algorithm},
-                            {"connectionLogging", model.connectionLogging},
-                            {"connectionThrottle", model.connectionThrottle},
-                            {"healthMonitor", model.healthMonitor},
-                            {"metadata", model.metadata},
-                            {"port", port.str()},
-                            {"timeout", model.timeout},
-                            {"sessionPersistence", model.sessionPersistence},
-                            {"httpsRedirect", model.httpsRedirect}}}
-
-  };
+  json::JMap result = {{"loadBalancer", JMap{{"name", model.name}}}};
+  if (!model.nodes.empty())
+    result.insert({"nodes", newNodes2json(model.nodes)});
+  if (!model.protocol.empty())
+    result.insert({"protocol", model.protocol});
+  if (model.halfClosed != model::NewLoadBalancer::Absent)
+    result.insert(
+        {"halfClosed",
+         model.halfClosed == model::NewLoadBalancer::True ? true : false});
+  if (virtualIPs2json(model.virtualIps))
+    result.insert({"virtualIps", virtualIPs2json(model.virtualIps)});
+  if (accessList2string(model.accessList))
+    result.insert({"accessList", accessList2string(model.accessList)});
+  if (model.algorithm)
+    result.insert({"algorithm", model.algorithm});
+  if (model.connectionLogging)
+    result.insert({"connectionLogging", model.connectionLogging});
+  if (model.connectionThrottle)
+    result.insert({"connectionThrottle", model.connectionThrottle});
+  if (model.healthMonitor)
+    result.insert({"healthMonitor", model.healthMonitor});
+  if (model.metadata)
+    result.insert({"metadata", model.metadata});
+  if (port)
+    result.insert({"port", port});
+  if (model.timeout)
+    result.insert({"timeout", model.timeout});
+  if (model.sessionPersistence)
+    result.insert({"sessionPersistence", model.sessionPersistence});
+  if (model.httpsRedirect)
+    result.insert({"httpsRedirect", model.httpsRedirect});
+  return result;
 }
 
 model::AccessList json2accessList(json::JList &json) {

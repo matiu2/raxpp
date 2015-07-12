@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include <raxpp/base/Datacenter.hpp>
 
@@ -32,15 +33,20 @@ struct AccessListItem {
 };
 
 struct NewNode {
- std::string address;
- int port;
- bool enabled; // "condition": "ENABLED",
- int weight;
- bool primary; // "type":"SECONDARY"
+  enum Condition {ENABLED, DRAINING};
+  enum Type { PRIMARY, SECONDARY, NOT_SET };
+
+  std::string address;
+  int port;
+  Condition condition = ENABLED;
+  Type type = NOT_SET;
+  int weight;
 };
 
-struct Node : NewNode {
-  std::string status;
+struct Node : public NewNode {
+  enum Status {ONLINE, DRAINING, OFFLINE};
+  int id;
+  Status status; // Read-only attribute
 };
 
 using AccessList = std::vector<AccessListItem>;
@@ -52,15 +58,18 @@ struct NewLoadBalancer {
   // http://www.utf8-chartable.de/ for information about the UTF-8 character
   // set.
   std::string name;
+  /// Which DC should the LB be created in ?
+  Datacenter dc;
   // (Optional) Nodes to be added to the load balancer.
-  std::vector<Node> nodes;
+  std::vector<NewNode> nodes;
   // (Required) Protocol of the service that is being load balanced.
   std::string protocol;
   // (Optional) Enables or disables Half-Closed support for the load balancer.
   // Half-Closed support provides the ability for one end of the connection to
   // terminate its output, while still receiving data from the other end./ Only
   // available for TCP/TCP_CLIENT_FIRST protocols.
-  bool halfClosed = false;
+  enum Bool {True=1, False=0, Absent=-1};
+  Bool halfClosed = Absent;
   // (Required) Type of virtualIp to add with the creation of a load balancer.
   // See the virtual IP types table in the Chapter 4 section "Virtual IPs".
   std::vector<VirtualIP> virtualIps;
@@ -93,7 +102,7 @@ struct NewLoadBalancer {
   // balancer.
   std::string metadata;
   // (Optional) Port number for the service you are load balancing.
-  int port;
+  std::string port;
   // (Optional) The timeout value for the load balancer and communications with
   // its nodes. Defaults to 30 seconds with a maximum of 120 seconds.
   std::string timeout;
@@ -110,20 +119,37 @@ struct NewLoadBalancer {
   bool httpsRedirect;
 };
 
-struct LoadBalancer : NewLoadBalancer {
+struct LoadBalancer {
     /// Which DC is the LB from
     Datacenter dc;
+    /// Name of the load balancer to create. The name must be 128 characters or fewer in length, and all UTF-8 characters are valid. See http://www.utf8-chartable.de/ for information about the UTF-8 character set.
+    std::string name;
     /// The ID for the load balancer.
     int id;
+    /// Protocol of the service that is being load balanced.
+    std::string protocol;
+    /// Port number for the service you are load balancing.
+    int port;
+    /// Algorithm that defines how traffic should be directed between back-end nodes.
+    std::string algorithm;
     /// The status of the load balancer.
     std::string status;
-    /// The number of load balancer nodes. (Returned by the API, so may not
-    /// match 'nodes')
+    /// The number of load balancer nodes.
     int nodeCount;
     /// The date and time what the load balancer was created.
     std::string created;
     /// The date and time what the load balancer was last updated.
     std::string updated;
+    /// The list of virtualIps for a load balancer.
+    std::vector<VirtualIP> virtualIps;
+    /// The access list (firewall like thing) - This is gotten through a second
+    /// request, so an empty pointer means it hasn't been retrieved yet
+    std::unique_ptr<AccessList> accessList;
+    /// Ensures that an accessList exists, and returns a reference to it
+    void setAccessList(model::AccessList&& input) {
+      if (!accessList)
+        accessList.reset(new AccessList(input));
+    }
 };
 
 }
