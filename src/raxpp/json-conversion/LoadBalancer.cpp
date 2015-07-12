@@ -97,6 +97,34 @@ json::JList newNodes2json(const std::vector<model::NewNode> &nodes) {
   return std::move(result);
 }
 
+json::JList
+accessList2json(const std::vector<model::NewAccessListItem> &accessList) {
+  json::JList result;
+  result.reserve(accessList.size());
+  for (auto &item : accessList) {
+    result.emplace_back(json::JMap{
+        {"address", item.address},
+        {"type",
+         item.type == model::NewAccessListItem::DENY ? "DENY" : "ALLOW"}});
+  }
+  return result;
+}
+
+std::string algorithm2string(model::NewLoadBalancer::Algorithm algorithm) {
+  switch (algorithm) {
+  case model::NewLoadBalancer::LEAST_CONNECTIONS:
+    return "LEAST_CONNECTIONS";
+  case model::NewLoadBalancer::RANDOM:
+    return "RANDOM";
+  case model::NewLoadBalancer::ROUND_ROBIN:
+    return "ROUND_ROBIN";
+  case model::NewLoadBalancer::WEIGHTED_LEAST_CONNECTIONS:
+    return "WEIGHTED_LEAST_CONNECTIONS";
+  case model::NewLoadBalancer::WEIGHTED_ROUND_ROBIN:
+    return "WEIGHTED_ROUND_ROBIN";
+  };
+}
+
 json::JMap lb2json(const model::NewLoadBalancer& model) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
   // { "loadBalancer": {
@@ -145,10 +173,9 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
          model.halfClosed == model::NewLoadBalancer::True ? true : false});
   if (!model.virtualIps.empty())
     result.insert({"virtualIps", virtualIPs2json(model.virtualIps)});
-  if (model.accessList && (!model.accessList->empty()))
-    result.insert({"accessList", accessList2string(*model.accessList)});
-  if (model.algorithm)
-    result.insert({"algorithm", model.algorithm});
+  if (!model.accessList.empty())
+    result.insert({"accessList", accessList2json(model.accessList)});
+  result.insert({"algorithm", algorithm2string(model.algorithm)});
   if (model.connectionLogging)
     result.insert({"connectionLogging", model.connectionLogging});
   if (model.connectionThrottle)

@@ -31,11 +31,14 @@ struct VirtualIP : public NewVirtualIP {
   int id;
 };
 
-struct AccessListItem {
+struct NewAccessListItem {
   enum Type {DENY, ALLOW};
-  int id;
   std::string address;
   Type type;
+};
+
+struct AccessListItem : public NewAccessListItem {
+  int id;
 };
 
 struct NewNode {
@@ -59,6 +62,7 @@ using AccessList = std::vector<AccessListItem>;
 
 /// This is the data passed to the 'create load balancer' api call.
 struct NewLoadBalancer {
+  enum Algorithm {LEAST_CONNECTIONS, RANDOM, ROUND_ROBIN, WEIGHTED_LEAST_CONNECTIONS, WEIGHTED_ROUND_ROBIN}; 
   // (Required) Name of the load balancer to create. The name must be 128
   // characters or fewer in length, and all UTF-8 characters are valid. See
   // http://www.utf8-chartable.de/ for information about the UTF-8 character
@@ -79,21 +83,14 @@ struct NewLoadBalancer {
   // (Required) Type of virtualIp to add with the creation of a load balancer.
   // See the virtual IP types table in the Chapter 4 section "Virtual IPs".
   std::vector<NewVirtualIP> virtualIps;
-  // The access list (firewall like thing) - This is gotten through a second
-  // request, so an empty pointer means it hasn't been retrieved yet
-  // (Optional) The access list management feature allows fine-grained network
-  // access controls to be applied to the load balancer virtual IP address.
-  // Refer to the Chapter 4 section "Access lists" for information and
-  // examples.
-  std::unique_ptr<AccessList> accessList;
-  /// Ensures that an accessList exists, and returns a reference to it
-  void setAccessList(model::AccessList &&input) {
-    if (!accessList)
-      accessList.reset(new AccessList(input));
-  }
+  // The access list (firewall like thing) - (Optional) The access list
+  // management feature allows fine-grained network access controls to be
+  // applied to the load balancer virtual IP address. Refer to the Chapter 4
+  // section "Access lists" for information and examples.
+  std::vector<NewAccessListItem> accessList;
   // (Optional) Algorithm that defines how traffic should be directed between
   // back-end nodes.
-  std::string algorithm;
+  Algorithm algorithm = LEAST_CONNECTIONS;
   // (Optional) Current connection logging configuration. Refer to the Chapter 4
   // section "Log connections" for information and examples.
   std::string connectionLogging;
