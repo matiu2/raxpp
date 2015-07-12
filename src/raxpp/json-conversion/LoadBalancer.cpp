@@ -39,9 +39,36 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
     model::VirtualIP ip;
     ip.id = (int)vip.at("id");
     ip.address = vip.at("address");
-    ip.type = vip.at("type");
-    ip.ipVersion = vip.at("ipVersion");
+    // IP Type
+    const std::string &type = vip.at("type");
+    if (type == "PUBLIC")
+      ip.type = model::VirtualIP::PUBLIC;
+    else if (type == "PRIVATE")
+      ip.type = model::VirtualIP::PRIVATE;
+    else
+      throw std::runtime_error(
+          std::string("Unknown Load Balancer Virtual IP type '") + type +
+          "'. Expected PUBLIC or PRIVATE");
+    // IP Version
+    ip.ipVersion = model::VirtualIP::IPV4;
+    auto version = vip.find("ipVersion");
+    if ((version != vip.end()) && (version->second == "IPV6"))
+      ip.ipVersion = model::VirtualIP::IPV6;
     result.virtualIps.emplace_back(ip);
+  }
+  return std::move(result);
+}
+
+json::JList
+virtualIPs2json(const std::vector<model::NewVirtualIP> &virtualIps) {
+  json::JList result;
+  result.reserve(virtualIps.size());
+  for (const auto &IP : virtualIps) {
+    result.emplace_back(json::JMap{
+        {"address", IP.address},
+        {"type", IP.type == model::NewVirtualIP::PUBLIC ? "PUBLIC" : "PRIVATE"},
+        {"ipVersion",
+         IP.ipVersion == model::NewVirtualIP::IPV6 ? "IPV6" : "IPV4"}});
   }
   return std::move(result);
 }
@@ -116,10 +143,10 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
     result.insert(
         {"halfClosed",
          model.halfClosed == model::NewLoadBalancer::True ? true : false});
-  if (virtualIPs2json(model.virtualIps))
+  if (!model.virtualIps.empty())
     result.insert({"virtualIps", virtualIPs2json(model.virtualIps)});
-  if (accessList2string(model.accessList))
-    result.insert({"accessList", accessList2string(model.accessList)});
+  if (model.accessList && (!model.accessList->empty()))
+    result.insert({"accessList", accessList2string(*model.accessList)});
   if (model.algorithm)
     result.insert({"algorithm", model.algorithm});
   if (model.connectionLogging)

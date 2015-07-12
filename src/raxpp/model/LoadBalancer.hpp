@@ -11,18 +11,24 @@
 namespace raxpp {
 namespace model {
 
-struct VirtualIP {
-  /// The ID for the IP address.
-  int id;
+struct NewVirtualIP {
+  enum Type {PUBLIC, PRIVATE};
+  enum Version {IPV4, IPV6};
+
   /// The IP address.
   std::string address;
   /// The IP address type. See the Virtual IP Types table in the Chapter 4
   /// section "Virtual IPs".
-  std::string type;
+  Type type = PUBLIC;
   /// The IP version.
-  std::string ipVersion;
+  Version ipVersion;
   operator std::string& () { return address; }
   operator const std::string& () const { return address; }
+};
+
+struct VirtualIP : public NewVirtualIP {
+  /// The ID for the IP address.
+  int id;
 };
 
 struct AccessListItem {
@@ -72,7 +78,7 @@ struct NewLoadBalancer {
   Bool halfClosed = Absent;
   // (Required) Type of virtualIp to add with the creation of a load balancer.
   // See the virtual IP types table in the Chapter 4 section "Virtual IPs".
-  std::vector<VirtualIP> virtualIps;
+  std::vector<NewVirtualIP> virtualIps;
   // The access list (firewall like thing) - This is gotten through a second
   // request, so an empty pointer means it hasn't been retrieved yet
   // (Optional) The access list management feature allows fine-grained network
