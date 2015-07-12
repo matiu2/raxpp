@@ -16,7 +16,7 @@ namespace json_conversion {
 *
 * @return A new LoadBalancer object
 */
-model::LoadBalancer json2lb(json::JSON &json, Datacenter dc);
+model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc);
 
 model::AccessList json2accessList(json::JList &json);
 

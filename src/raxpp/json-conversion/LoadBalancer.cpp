@@ -46,6 +46,65 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
   return std::move(result);
 }
 
+json::JMap lb2json(const model::NewLoadBalancer& model) {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
+  // { "loadBalancer": {
+  //      "name": "a-new-loadbalancer",
+  //      "port": 80,
+  //      "protocol": "HTTP",
+  //      "virtualIps": [
+  //          {
+  //              "type": "PUBLIC"
+  //          }
+  //      ],
+  //      "nodes": [
+  //          {
+  //              "address": "10.1.1.1",
+  //              "port": 80,
+  //              "condition": "ENABLED"
+  //          }
+  //      ]
+  //  }
+  //}
+  // Name	Type	Description
+  // name String (Required) Name of the load balancer to create. The name must be 128 characters or fewer in length, and all UTF-8 characters are valid. See http://www.utf8-chartable.de/ for information about the UTF-8 character set.
+  // nodes Object (Optional) Nodes to be added to the load balancer.  
+  // protocol String (Required) Protocol of the service that is being load balanced.  
+  // halfClosed Boolean (Optional) Enables or disables Half-Closed support for the load balancer. Half-Closed support provides the ability for one end of the connection to terminate its output, while still receiving data from the other end. Only available for TCP/TCP_CLIENT_FIRST protocols.  
+  // virtualIps Object (Required) Type of virtualIp to add with the creation of a load balancer. See the virtual IP types table in the Chapter 4 section "Virtual IPs".  
+  // accessList String (Optional) The access list management feature allows fine-grained network access controls to be applied to the load balancer virtual IP address. Refer to the Chapter 4 section "Access lists" for information and examples.  
+  // algorithm String (Optional) Algorithm that defines how traffic should be directed between back-end nodes.  
+  // connectionLogging String (Optional) Current connection logging configuration. Refer to the Chapter 4 section "Log connections" for information and examples.  
+  // connectionThrottle String (Optional) Specifies limits on the number of connections per IP address to help mitigate malicious or abusive traffic to your applications. Refer to the Chapter 4 section "Throttle connections" for information and examples.  
+  // healthMonitor String (Optional) The type of health monitor check to perform to ensure that the service is performing properly.  
+  // metadata String (Optional) Information (metadata) that can be associated with each load balancer.  
+  // port String (Optional) Port number for the service you are load balancing.  
+  // timeout String (Optional) The timeout value for the load balancer and communications with its nodes. Defaults to 30 seconds with a maximum of 120 seconds.  
+  // sessionPersistence String (Optional) Specifies whether multiple requests from clients are directed to the same node.  
+  // httpsRedirect Boolean (Optional) Enables or disables HTTP to HTTPS redirection for the load balancer. When enabled, any HTTP request returns status code 301 (Moved Permanently), and the requester is redirected to the requested URL via the HTTPS protocol on port 443. For example, http://example.com/page.html would be redirected to https://example.com/page.html. Only available for HTTPS protocol (port=443), or HTTP protocol with a properly configured SSL termination (secureTrafficOnly=true, securePort=443).  
+  std::stringstream port;
+  port << model.port;
+  using namespace json;
+  return {
+      {"loadBalancer", JMap{{"name", model.name},
+                            {"nodes", nodes2json(model.nodes)},
+                            {"protocol", model.protocol},
+                            {"halfClosed", model.halfClosed},
+                            {"virtualIps", virtualIPs2json(model.virtualIps)},
+                            {"accessList", accessList2string(model.accessList)},
+                            {"algorithm", model.algorithm},
+                            {"connectionLogging", model.connectionLogging},
+                            {"connectionThrottle", model.connectionThrottle},
+                            {"healthMonitor", model.healthMonitor},
+                            {"metadata", model.metadata},
+                            {"port", port.str()},
+                            {"timeout", model.timeout},
+                            {"sessionPersistence", model.sessionPersistence},
+                            {"httpsRedirect", model.httpsRedirect}}}
+
+  };
+}
+
 model::AccessList json2accessList(json::JList &json) {
   model::AccessList result;
   for (auto &item : json) {

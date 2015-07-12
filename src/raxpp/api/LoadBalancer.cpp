@@ -14,20 +14,22 @@ LoadBalancer::LoadBalancer(Rackspace &rs) : rs(rs) {
   }
 }
 
+HTTPCodeHandler const check_listLoadBalancers{
+    {202}, // Good codes
+    {
+     {400, "Load Balancer Fault / Bad Request"},
+     {500, "Load Balancer Fault"},
+     {503, "Service Unavailable"},
+     {401, "Unauthorized - Check authentication token"},
+     {413, "Over Limit - Wait, and try later"},
+    }};
+
 json::JList LoadBalancer::list(Datacenter dc) const {
     auto &url = dc_to_url.at(dc);
-    return rs.get(url + "/loadbalancers").at("loadBalancers");
+    return rs.get(url + "/loadbalancers", check_listLoadBalancers).at("loadBalancers");
 }
 
-
-json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const {
-  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_showAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
-  std::stringstream url;
-  url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID << "/accesslist";
-  return rs.get(url.str()).at("accessList");
-}
-
-HTTPCodeHandler const check_deleteAccessListItems {
+HTTPCodeHandler const check_generalLoadBalancers {
     {202}, // Good codes
     {{400, "Load Balancer Fault / Bad Request"},
      {500, "Load Balancer Fault"},
@@ -35,6 +37,17 @@ HTTPCodeHandler const check_deleteAccessListItems {
      {401, "Unauthorized - Check authentication token"},
      {413, "Over Limit - Wait, and try later"},
      {404, "Load balancer / Access List not found - Check the name"}}};
+
+json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_showAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
+  std::stringstream url;
+  url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID << "/accesslist";
+  return rs.get(url.str(), addContext(check_generalLoadBalancers, [loadBalancerID](){
+    std::stringstream msg;
+    msg << "Getting AccessList for lb id: " << loadBalancerID;
+    return msg.str();
+  })).at("accessList");
+}
 
 void
 LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
@@ -57,15 +70,18 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
         break;
       url << (*item) << ',';
     }
-    int response = rs.del(url.str());
-    if (!check_deleteAccessListItems.isGoodCode(response)) {
+    rs.del(url.str(), addContext(check_generalLoadBalancers, [&url]() {
       std::stringstream msg;
       msg << "From sending this url: " << url.str();
-      check_deleteAccessListItems(response, msg.str());
-    } else {
-      check_deleteAccessListItems(response);
-    }
+      return msg.str();
+    }));
   }
+}
+
+
+json::JMap LoadBalancer::create(Datacenter dc, json::JMap data) {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
+  return rs.POST("/loadbalancers", data, check_generalLoadBalancers);
 }
 
 }

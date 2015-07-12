@@ -40,6 +40,7 @@ public:
   /// Delete Access List Items from a load balancer
   void deleteAccessListItems(Datacenter dc, int loadBalancerID,
                              const std::vector<int> &idsToDelete) const;
+  json::JMap create(Datacenter dc, json::JMap data);
 };
 
 

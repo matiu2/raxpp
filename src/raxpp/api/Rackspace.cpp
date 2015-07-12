@@ -38,6 +38,7 @@ Rackspace::Rackspace(const std::string &username, const std::string &apikey) {
   auto reply = login(username, apikey);
   _json = json::readValue(reply.begin(), reply.end());
   _token = _json.at("access").at("token").at("id");
+  _authHeader = std::string("X-Auth-Token: ") + _token;
 }
 
 const json::JMap &Rackspace::getCatalog(const std::string &name) const {
@@ -51,24 +52,31 @@ curl::Easy& Rackspace::request(const std::string& url) {
 #ifdef DEBUG_CURL
       .setOpt(CURLOPT_VERBOSE)
 #endif
-      .header(std::string("X-Auth-Token: ") + _token)
+      .header(_authHeader)
       .header("Accept: application/json")
       .header("Content-type: application/json");
 }
 
-json::JSON Rackspace::get(const std::string& url) {
+json::JSON Rackspace::get(const std::string& url, CodeProcessor responseHandler) {
   std::string reply;
-  request(url).perform(reply);
+  int code = request(url).perform(reply).responseCode();
+  responseHandler(code);
   return json::readValue(reply.begin(), reply.end());
 }
 
-int Rackspace::del(const std::string& url) {
-  client.reset();
-  return client.url(url.c_str())
-      .header(std::string("X-Auth-Token: ") + _token)
-      .DELETE()
-      .perform()
-      .responseCode();
+void Rackspace::del(const std::string& url, CodeProcessor responseHandler) {
+  int code = request(url).DELETE().perform().responseCode();
+  responseHandler(code);
+}
+
+json::JSON Rackspace::POST(const std::string& url, const json::JSON& data, CodeProcessor responseHandler) {
+  std::stringstream stream;
+  stream << data;
+  std::string reply;
+  int code =
+      request(url).customBody(stream).POST().perform(reply).responseCode();
+  responseHandler(code);
+  return json::readValue(reply.begin(), reply.end());
 }
 
 }

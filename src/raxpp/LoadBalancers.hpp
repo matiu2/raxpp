@@ -28,6 +28,7 @@ public:
   * @return 
   */
   const std::vector<LoadBalancer>& list(Datacenter dc, bool forceRefresh = false);
+  LoadBalancer& create(const model::NewLoadBalancer& model);
   LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
   LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
   const raxpp::api::LoadBalancer& api() const { return _api; }
