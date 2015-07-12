@@ -18,7 +18,11 @@ namespace json_conversion {
 */
 model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc);
 
+/// Converts a load balancer to json
+json::JMap lb2json(const model::NewLoadBalancer& model);
+
 model::AccessList json2accessList(json::JList &json);
+
 
 }
 }

@@ -79,7 +79,7 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
 }
 
 
-json::JMap LoadBalancer::create(Datacenter dc, json::JMap data) {
+json::JMap LoadBalancer::create(Datacenter dc, const json::JMap& data) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
   return rs.POST("/loadbalancers", data, check_generalLoadBalancers);
 }

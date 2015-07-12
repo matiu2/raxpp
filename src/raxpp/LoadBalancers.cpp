@@ -49,13 +49,13 @@ LoadBalancer &LoadBalancers::findById(int id, Datacenter dc,
   throw std::runtime_error(msg.str());
 }
 
-LoadBalancer& LoadBalancers:: create(const model::NewLoadBalancer& model) {
-  json::JMap upload = lb2json(model);
-  json::JMap data = _api.create(dc, model);
-  raxpp::model::LoadBalancer lb = json2lb(data);
-  auto& lbs = dc_to_lbs[dc];
-  lbs.push_back(lb);
-  return lbs.last();
+LoadBalancer& LoadBalancers:: create(const model::NewLoadBalancer& plan) {
+  json::JMap upload = json_conversion::lb2json(plan);
+  json::JMap result = _api.create(plan.dc, upload);
+  raxpp::model::LoadBalancer model = json_conversion::json2lb(result, plan.dc);
+  auto& lbs = dc_to_lbs[plan.dc];
+  lbs.push_back(LoadBalancer(_api, std::move(model)));
+  return lbs.back();
 }
 
 }

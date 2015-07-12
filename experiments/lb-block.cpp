@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     auto found = accessMap.find(ip);
     if (found != accessMap.end()) {
       // And the list has it as allow,
-      if (found->second->type == raxpp::model::AccessListItem::ALLOW)
+      if (found->second->allow)
         // Remove it
         itemsToDelete.push_back(found->second->id);
     } else {
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     auto found = accessMap.find(ip);
     if (found != accessMap.end()) {
       // And the list has it as DENY,
-      if (found->second->type == raxpp::model::AccessListItem::DENY)
+      if (!found->second->allow)
         // Remove it
         itemsToDelete.push_back(found->second->id);
     }
@@ -85,16 +85,7 @@ int main(int argc, char** argv) {
     std::cout << "ID: " << item.id << std::endl
     << "address: " << item.address << std::endl
     << "Type: ";
-    switch (item.type) {
-      case raxpp::model::AccessListItem::DENY: {
-        std::cout << "Deny";
-        break;
-      }
-      case raxpp::model::AccessListItem::ALLOW: {
-        std::cout << "Allow";
-        break;
-      }
-    }
+    std::cout << (item.allow ? "Allow" : "Deny");
     std::cout << std::endl << std::endl;
   }
   // 

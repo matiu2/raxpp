@@ -106,12 +106,9 @@ json::JList
 accessList2json(const std::vector<model::NewAccessListItem> &accessList) {
   json::JList result;
   result.reserve(accessList.size());
-  for (auto &item : accessList) {
-    result.emplace_back(json::JMap{
-        {"address", item.address},
-        {"type", item.type == model::NewAccessListItem::Type::DENY ? "DENY"
-                                                                   : "ALLOW"}});
-  }
+  for (auto &item : accessList)
+    result.emplace_back(json::JMap{{"address", item.address},
+                                   {"type", item.allow ? "ALLOW" : "DENY"}});
   return result;
 }
 
@@ -218,14 +215,23 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
       metadata.insert(pair);
     result.insert({"metadata", metadata});
   }
-  if (port)
-    result.insert({"port", port});
-  if (model.timeout)
+  if (model.port > 0)
+    result.insert({"port", model.port});
+  if (model.timeout > 0)
     result.insert({"timeout", model.timeout});
-  if (model.sessionPersistence)
-    result.insert({"sessionPersistence", model.sessionPersistence});
+  using Persistence = model::NewLoadBalancer::SessionPersistence;
+  switch (model.sessionPersistence) {
+  case Persistence::NONE:
+    break;
+  case Persistence::HTTP_COOKIE:
+    result.insert({"sessionPersistence", "HTTP_COOKIE"});
+    break;
+  case Persistence::SOURCE_IP:
+    result.insert({"sessionPersistence", "SOURCE_IP"});
+    break;
+  };
   if (model.httpsRedirect)
-    result.insert({"httpsRedirect", model.httpsRedirect});
+    result.insert({"httpsRedirect", json::JBool(model.httpsRedirect)});
   return result;
 }
 
@@ -237,9 +243,9 @@ model::AccessList json2accessList(json::JList &json) {
     output.address = item.at("address");
     std::string type = item.at("type");
     if (type == "DENY")
-      output.type = model::AccessListItem::DENY;
+      output.allow = false;
     else if (type == "ALLOW")
-      output.type = model::AccessListItem::ALLOW;
+      output.allow = true;
     else {
       std::stringstream msg;
       msg << "Unknown access list item type: " << type

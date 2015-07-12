@@ -32,9 +32,8 @@ struct VirtualIP : public NewVirtualIP {
 };
 
 struct NewAccessListItem {
-  enum class Type {DENY, ALLOW};
   std::string address;
-  Type type;
+  bool allow; /// If false, it means deny
 };
 
 struct AccessListItem : public NewAccessListItem {
@@ -66,6 +65,7 @@ struct NewLoadBalancer {
   enum class ConnectionLogging {NONE, Enabled, Disabled};
   enum class HealthMonitor {NONE, CONNECT, HTTP, HTTPS};
   enum class Bool {True=1, False=0, Absent=-1};
+  enum class SessionPersistence {NONE, HTTP_COOKIE, SOURCE_IP};
   /// (Required) Name of the load balancer to create. The name must be 128
   /// characters or fewer in length, and all UTF-8 characters are valid. See
   /// http://www.utf8-chartable.de/ for information about the UTF-8 character
@@ -106,13 +106,13 @@ struct NewLoadBalancer {
   /// balancer.
   std::map<std::string, std::string> metadata;
   /// (Optional) Port number for the service you are load balancing.
-  std::string port;
+  unsigned short port;
   /// (Optional) The timeout value for the load balancer and communications with
   /// its nodes. Defaults to 30 seconds with a maximum of 120 seconds.
-  std::string timeout;
+  size_t timeout = 0;
   /// (Optional) Specifies whether multiple requests from clients are directed to
   /// the same node.
-  std::string sessionPersistence;
+  SessionPersistence sessionPersistence;
   /// (Optional) Enables or disables HTTP to HTTPS redirection for the load
   /// balancer. When enabled, any HTTP request returns status code 301 (Moved
   /// Permanently), and the requester is redirected to the requested URL via the
