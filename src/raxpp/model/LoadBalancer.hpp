@@ -63,6 +63,7 @@ using AccessList = std::vector<AccessListItem>;
 /// This is the data passed to the 'create load balancer' api call.
 struct NewLoadBalancer {
   enum Algorithm {LEAST_CONNECTIONS, RANDOM, ROUND_ROBIN, WEIGHTED_LEAST_CONNECTIONS, WEIGHTED_ROUND_ROBIN}; 
+  enum ConnectionLogging {Enabled, Disabled, NotSet};
   // (Required) Name of the load balancer to create. The name must be 128
   // characters or fewer in length, and all UTF-8 characters are valid. See
   // http://www.utf8-chartable.de/ for information about the UTF-8 character
@@ -93,7 +94,7 @@ struct NewLoadBalancer {
   Algorithm algorithm = LEAST_CONNECTIONS;
   // (Optional) Current connection logging configuration. Refer to the Chapter 4
   // section "Log connections" for information and examples.
-  std::string connectionLogging;
+  ConnectionLogging connectionLogging = NotSet;
   // (Optional) Specifies limits on the number of connections per IP address to
   // help mitigate malicious or abusive traffic to your applications. Refer to
   // the Chapter 4 section "Throttle connections" for information and examples.

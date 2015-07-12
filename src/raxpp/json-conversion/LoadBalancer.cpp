@@ -176,8 +176,14 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
   if (!model.accessList.empty())
     result.insert({"accessList", accessList2json(model.accessList)});
   result.insert({"algorithm", algorithm2string(model.algorithm)});
-  if (model.connectionLogging)
-    result.insert({"connectionLogging", model.connectionLogging});
+  if (model.connectionLogging != model::NewLoadBalancer::NotSet)
+    result.insert(
+        {"connectionLogging",
+         json::JMap{
+             {"enabled", json::JBool(model.connectionLogging ==
+                                             model::NewLoadBalancer::Enabled
+                                         ? true
+                                         : false)}}});
   if (model.connectionThrottle)
     result.insert({"connectionThrottle", model.connectionThrottle});
   if (model.healthMonitor)
