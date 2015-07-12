@@ -41,19 +41,21 @@ model::LoadBalancer json2lb(json::JSON &json, Datacenter dc) {
     ip.address = vip.at("address");
     // IP Type
     const std::string &type = vip.at("type");
+    using Type = model::VirtualIP::Type;
     if (type == "PUBLIC")
-      ip.type = model::VirtualIP::PUBLIC;
+      ip.type = Type::PUBLIC;
     else if (type == "PRIVATE")
-      ip.type = model::VirtualIP::PRIVATE;
+      ip.type = Type::PRIVATE;
     else
       throw std::runtime_error(
           std::string("Unknown Load Balancer Virtual IP type '") + type +
           "'. Expected PUBLIC or PRIVATE");
     // IP Version
-    ip.ipVersion = model::VirtualIP::IPV4;
+    using IPVersion = model::VirtualIP::Version;
+    ip.ipVersion = IPVersion::IPV4;
     auto version = vip.find("ipVersion");
     if ((version != vip.end()) && (version->second == "IPV6"))
-      ip.ipVersion = model::VirtualIP::IPV6;
+      ip.ipVersion = IPVersion::IPV6;
     result.virtualIps.emplace_back(ip);
   }
   return std::move(result);
@@ -63,12 +65,13 @@ json::JList
 virtualIPs2json(const std::vector<model::NewVirtualIP> &virtualIps) {
   json::JList result;
   result.reserve(virtualIps.size());
+  using Type = model::VirtualIP::Type;
+  using Version = model::VirtualIP::Version;
   for (const auto &IP : virtualIps) {
     result.emplace_back(json::JMap{
         {"address", IP.address},
-        {"type", IP.type == model::NewVirtualIP::PUBLIC ? "PUBLIC" : "PRIVATE"},
-        {"ipVersion",
-         IP.ipVersion == model::NewVirtualIP::IPV6 ? "IPV6" : "IPV4"}});
+        {"type", IP.type == Type::PUBLIC ? "PUBLIC" : "PRIVATE"},
+        {"ipVersion", IP.ipVersion == Version::IPV6 ? "IPV6" : "IPV4"}});
   }
   return std::move(result);
 }
@@ -76,19 +79,21 @@ virtualIPs2json(const std::vector<model::NewVirtualIP> &virtualIps) {
 json::JList newNodes2json(const std::vector<model::NewNode> &nodes) {
   json::JList result;
   for (const auto &node : nodes) {
-    json::JMap data{{"address", node.address},
-                    {"port", node.port},
-                    {"condition", node.condition == model::NewNode::ENABLED
-                                      ? "ENABLED"
-                                      : "DRAINING"},
-                    {"weight", node.weight}};
+    json::JMap data{
+        {"address", node.address},
+        {"port", node.port},
+        {"condition", node.condition == model::NewNode::Condition::ENABLED
+                          ? "ENABLED"
+                          : "DRAINING"},
+        {"weight", node.weight}};
+    using Type = model::NewNode::Type;
     switch (node.type) {
-    case model::NewNode::NOT_SET:
+    case Type::NOT_SET:
       break;
-    case model::NewNode::PRIMARY:
+    case Type::PRIMARY:
       data["type"] = "PRIMARY";
       break;
-    case model::NewNode::SECONDARY:
+    case Type::SECONDARY:
       data["type"] = "SECONDARY";
       break;
     };
@@ -104,23 +109,24 @@ accessList2json(const std::vector<model::NewAccessListItem> &accessList) {
   for (auto &item : accessList) {
     result.emplace_back(json::JMap{
         {"address", item.address},
-        {"type",
-         item.type == model::NewAccessListItem::DENY ? "DENY" : "ALLOW"}});
+        {"type", item.type == model::NewAccessListItem::Type::DENY ? "DENY"
+                                                                   : "ALLOW"}});
   }
   return result;
 }
 
 std::string algorithm2string(model::NewLoadBalancer::Algorithm algorithm) {
+  using Algorithm = model::NewLoadBalancer::Algorithm;
   switch (algorithm) {
-  case model::NewLoadBalancer::LEAST_CONNECTIONS:
+  case Algorithm::LEAST_CONNECTIONS:
     return "LEAST_CONNECTIONS";
-  case model::NewLoadBalancer::RANDOM:
+  case Algorithm::RANDOM:
     return "RANDOM";
-  case model::NewLoadBalancer::ROUND_ROBIN:
+  case Algorithm::ROUND_ROBIN:
     return "ROUND_ROBIN";
-  case model::NewLoadBalancer::WEIGHTED_LEAST_CONNECTIONS:
+  case Algorithm::WEIGHTED_LEAST_CONNECTIONS:
     return "WEIGHTED_LEAST_CONNECTIONS";
-  case model::NewLoadBalancer::WEIGHTED_ROUND_ROBIN:
+  case Algorithm::WEIGHTED_ROUND_ROBIN:
     return "WEIGHTED_ROUND_ROBIN";
   };
 }
@@ -167,29 +173,51 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
     result.insert({"nodes", newNodes2json(model.nodes)});
   if (!model.protocol.empty())
     result.insert({"protocol", model.protocol});
-  if (model.halfClosed != model::NewLoadBalancer::Absent)
+  using Bool = model::NewLoadBalancer::Bool;
+  if (model.halfClosed != Bool::Absent)
     result.insert(
-        {"halfClosed",
-         model.halfClosed == model::NewLoadBalancer::True ? true : false});
+        {"halfClosed", model.halfClosed == Bool::True ? true : false});
   if (!model.virtualIps.empty())
     result.insert({"virtualIps", virtualIPs2json(model.virtualIps)});
   if (!model.accessList.empty())
     result.insert({"accessList", accessList2json(model.accessList)});
   result.insert({"algorithm", algorithm2string(model.algorithm)});
-  if (model.connectionLogging != model::NewLoadBalancer::NotSet)
+  // Connection Logging
+  using Logging = model::NewLoadBalancer::ConnectionLogging;
+  if (model.connectionLogging != Logging::NONE)
+    result.insert({"connectionLogging",
+                   json::JMap{{"enabled", json::JBool(model.connectionLogging ==
+                                                              Logging::Enabled
+                                                          ? true
+                                                          : false)}}});
+  // Connection Throttling
+  if (model.maxConnections > 0)
     result.insert(
-        {"connectionLogging",
-         json::JMap{
-             {"enabled", json::JBool(model.connectionLogging ==
-                                             model::NewLoadBalancer::Enabled
-                                         ? true
-                                         : false)}}});
-  if (model.connectionThrottle)
-    result.insert({"connectionThrottle", model.connectionThrottle});
-  if (model.healthMonitor)
-    result.insert({"healthMonitor", model.healthMonitor});
-  if (model.metadata)
-    result.insert({"metadata", model.metadata});
+        {"connectionThrottle",
+         json::JMap{{"connectionThrottle",
+                     json::JMap{{"maxConnections", model.maxConnections}}}}});
+  // Health Monitor
+  using Monitor = model::NewLoadBalancer::HealthMonitor;
+  switch (model.healthMonitor) {
+  case Monitor::NONE:
+    break;
+  case Monitor::CONNECT:
+    result.insert({"healthMonitor", "CONNECT"});
+    break;
+  case Monitor::HTTP:
+    result.insert({"healthMonitor", "HTTP"});
+    break;
+  case Monitor::HTTPS:
+    result.insert({"healthMonitor", "HTTPS"});
+    break;
+  };
+  // Metadata
+  if (!model.metadata.empty()) {
+    json::JMap metadata;
+    for (const auto &pair : model.metadata)
+      metadata.insert(pair);
+    result.insert({"metadata", metadata});
+  }
   if (port)
     result.insert({"port", port});
   if (model.timeout)
