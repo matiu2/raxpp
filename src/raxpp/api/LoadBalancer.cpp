@@ -14,8 +14,8 @@ LoadBalancer::LoadBalancer(Rackspace &rs) : rs(rs) {
   }
 }
 
-HTTPCodeHandler const check_listLoadBalancers{
-    {202}, // Good codes
+HTTPCodeHandler const check_lb_read{
+    {200}, // Good codes
     {
      {400, "Load Balancer Fault / Bad Request"},
      {500, "Load Balancer Fault"},
@@ -26,10 +26,10 @@ HTTPCodeHandler const check_listLoadBalancers{
 
 json::JList LoadBalancer::list(Datacenter dc) const {
     auto &url = dc_to_url.at(dc);
-    return rs.get(url + "/loadbalancers", check_listLoadBalancers).at("loadBalancers");
+    return rs.get(url + "/loadbalancers", check_lb_read).at("loadBalancers");
 }
 
-HTTPCodeHandler const check_generalLoadBalancers {
+HTTPCodeHandler const check_lb_update {
     {202}, // Good codes
     {{400, "Load Balancer Fault / Bad Request"},
      {500, "Load Balancer Fault"},
@@ -42,7 +42,7 @@ json::JMap LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const 
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_showAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
   std::stringstream url;
   url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID << "/accesslist";
-  return rs.get(url.str(), addContext(check_generalLoadBalancers, [loadBalancerID](){
+  return rs.get(url.str(), addContext(check_lb_read, [loadBalancerID](){
     std::stringstream msg;
     msg << "Getting AccessList for lb id: " << loadBalancerID;
     return msg.str();
@@ -69,8 +69,11 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
       if (item == end)
         break;
       url << (*item) << ',';
+      ++item;
+      if (item == end)
+        break;
     }
-    rs.del(url.str(), addContext(check_generalLoadBalancers, [&url]() {
+    rs.del(url.str(), addContext(check_lb_update, [&url]() {
       std::stringstream msg;
       msg << "From sending this url: " << url.str();
       return msg.str();
@@ -78,18 +81,18 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
   }
 }
 
-void LoadBalancer::updateAccessList(Datacenter dc, int loadBalancerID,
-                                    const json::JMap &accessList) const {
+void LoadBalancer::appendToAccessList(Datacenter dc, int loadBalancerID,
+                                      const json::JMap &accessList) const {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
   std::stringstream url;
   url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID
       << "/accesslist";
   std::cout << "Access List: " << accessList << std::endl;
   rs.POST(url.str(), accessList,
-          addContext(check_generalLoadBalancers,
+          addContext(check_lb_update,
                      [&url, loadBalancerID, &accessList]() {
             std::stringstream msg;
-            msg << "From creating/updating accessList on load balancer "
+            msg << "From appending to accessList on load balancer "
                 << loadBalancerID << " :" << accessList;
             return msg.str();
           }));
@@ -97,7 +100,7 @@ void LoadBalancer::updateAccessList(Datacenter dc, int loadBalancerID,
 
 json::JMap LoadBalancer::create(Datacenter dc, const json::JMap& data) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request
-  return rs.POST("/loadbalancers", data, check_generalLoadBalancers);
+  return rs.POST("/loadbalancers", data, check_lb_update);
 }
 
 }

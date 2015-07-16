@@ -30,15 +30,15 @@ int main(int argc, char** argv) {
   // Make lists of IPs to block/open
   std::vector<std::string> toBlock;
   std::vector<std::string> toOpen;
-  auto &currentList = toBlock;
+  auto currentList = &toBlock;
   for (int i = 5; i < argc; ++i) {
     std::string arg = argv[i];
     if (arg == "DENY")
-      currentList = toBlock;
+      currentList = &toBlock;
     else if (arg == "ALLOW")
-      currentList = toOpen;
+      currentList = &toOpen;
     else
-      currentList.push_back(arg);
+      currentList->push_back(arg);
   }
   // Login to rackspace
   raxpp::api::Rackspace rs(username, apikey);
@@ -51,23 +51,28 @@ int main(int argc, char** argv) {
   std::map<std::string, raxpp::model::AccessListItem*> accessMap;
   for (auto& item : accessList)
     accessMap[item.address] = &item;
-  std::vector<int> itemsToDelete; // Things we need to delete from the list
-  std::vector<std::string> addressesToAdd; // Things we need to add to the list
+  std::vector<int> toDeleteFromList; // Things we need to delete from the list
+  raxpp::model::AccessList
+      toAppendToList; // Deny entries we need to append to the end
+                      // of the accessList
   // Check the IPs we have to deny
   for (const std::string &ip : toBlock) {
-    // If it's already in the list
     auto found = accessMap.find(ip);
     if (found != accessMap.end()) {
-      // And the list has it as allow,
+      // If the deny IP is already in the list,
+      // and it's listed as allow,
       if (found->second->allow)
         // Remove it from the LB's list
-        itemsToDelete.push_back(found->second->id);
+        toDeleteFromList.push_back(found->second->id);
     } else {
-      // Add it to the LB's block list
-      addressesToAdd.push_back(ip);
+      // If the deny IP is not already in the list .. add it as a blocker
+      raxpp::model::AccessListItem newItem;
+      newItem.address = ip;
+      newItem.allow = false;
+      toAppendToList.emplace_back(std::move(newItem));
     }
   }
-  // Go through the list of IPs to allow
+  // Go through the list of IPs that need access
   for (const std::string &ip : toOpen) {
     // If it's in the list already
     auto found = accessMap.find(ip);
@@ -75,11 +80,14 @@ int main(int argc, char** argv) {
       // And the list has it as DENY,
       if (!found->second->allow)
         // Remove it
-        itemsToDelete.push_back(found->second->id);
+        toDeleteFromList.push_back(found->second->id);
     }
   }
   // Now run through our actions
-  lb.deleteAccessListItems(itemsToDelete);
+  lb.deleteAccessListItems(toDeleteFromList);
+  // Add the items that need adding to the list
+  lb.appendToAccessList(toAppendToList);
+  // Now see what we got
   accessList = lb.getAccessList(true);
   for (auto& item : accessList) {
     std::cout << "ID: " << item.id << std::endl
@@ -88,15 +96,5 @@ int main(int argc, char** argv) {
     std::cout << (item.allow ? "Allow" : "Deny");
     std::cout << std::endl << std::endl;
   }
-  // Add the items that need adding to the list
-  accessList.reserve(accessList.size() + addressesToAdd.size());
-  for (const auto& address : addressesToAdd) {
-    raxpp::model::AccessListItem item;
-    item.address = address;
-    item.allow = false;
-    accessList.emplace_back(std::move(item));
-  }
-  // Now tell rackspace
-  lb.updateAccessList(accessList);
   return 0;
 }

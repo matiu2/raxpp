@@ -15,7 +15,7 @@ void HTTPCodeHandler::operator()(int code, const std::string &context) const {
     throw APIError(code, foundError->second);
   }
   auto foundGood = goodCodes.find(code);
-  if (foundGood != goodCodes.end()) {
+  if (foundGood == goodCodes.end()) {
     std::stringstream msg;
     msg << "Unexpected Response code " << code << " '" << context << "'";
     throw APIError(code, msg.str());

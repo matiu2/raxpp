@@ -31,13 +31,10 @@ struct VirtualIP : public NewVirtualIP {
   int id;
 };
 
-struct NewAccessListItem {
+struct AccessListItem {
   std::string address;
   bool allow; /// If false, it means deny
-};
-
-struct AccessListItem : public NewAccessListItem {
-  int id;
+  unsigned int id = 0; /// 0 means no id has been set yet
 };
 
 struct NewNode {
@@ -58,7 +55,6 @@ struct Node : public NewNode {
 };
 
 using AccessList = std::vector<AccessListItem>;
-using NewAccessList = std::vector<NewAccessListItem>;
 
 /// This is the data passed to the 'create load balancer' api call.
 struct NewLoadBalancer {
@@ -90,7 +86,7 @@ struct NewLoadBalancer {
   /// management feature allows fine-grained network access controls to be
   /// applied to the load balancer virtual IP address. Refer to the Chapter 4
   /// section "Access lists" for information and examples.
-  std::vector<NewAccessListItem> accessList;
+  std::vector<AccessListItem> accessList;
   /// (Optional) Algorithm that defines how traffic should be directed between
   /// back-end nodes.
   Algorithm algorithm = Algorithm::LEAST_CONNECTIONS;

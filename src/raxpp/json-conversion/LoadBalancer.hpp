@@ -24,6 +24,8 @@ json::JMap lb2json(const model::NewLoadBalancer& model);
 model::AccessList json2accessList(const json::JMap &json);
 json::JMap accessList2json(const model::AccessList& accessList);
 
+json::JList newAccessList2json(const model::AccessList& accessList);
+
 
 }
 }

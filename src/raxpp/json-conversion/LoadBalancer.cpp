@@ -103,15 +103,20 @@ json::JList newNodes2json(const std::vector<model::NewNode> &nodes) {
   return std::move(result);
 }
 
-json::JList
-accessList2json(const std::vector<model::NewAccessListItem> &accessList) {
-  json::JList result;
-  result.reserve(accessList.size());
-  for (auto &item : accessList)
-    result.emplace_back(json::JMap{{"address", item.address},
-                                   {"type", item.allow ? "ALLOW" : "DENY"}});
-  return result;
+json::JMap accessList2json(const model::AccessList& accessList) {
+  json::JList innards;
+  for (const model::AccessListItem &item : accessList) {
+    json::JMap jItem{{"address", item.address},
+                     {"type", item.allow ? "ALLOW" : "DENY"}};
+    // if item.id == 0, that means it was never set (yes, we're assuming that
+    // the API never sets an actual item id to 0)
+    if (item.id)
+      jItem.insert({"id", item.id});
+    innards.emplace_back(std::move(jItem));
+  }
+  return json::JMap{{"accessList", std::move(innards)}};
 }
+
 
 std::string algorithm2string(model::NewLoadBalancer::Algorithm algorithm) {
   using Algorithm = model::NewLoadBalancer::Algorithm;
@@ -257,15 +262,6 @@ model::AccessList json2accessList(const json::JMap &json) {
     result.emplace_back(std::move(output));
   }
   return std::move(result);
-}
-
-json::JMap accessList2json(const model::AccessList& accessList) {
-  // TODO: Do we need to encode 'ids' ? There's some data loss going on here.
-  json::JList innards;
-  for (const model::AccessListItem& item : accessList)
-    innards.push_back(json::JMap{{"address", item.address},
-                                 {"type", item.allow ? "ALLOW" : "DENY"}});
-  return json::JMap{{"accessList", std::move(innards)}};
 }
 
 }}

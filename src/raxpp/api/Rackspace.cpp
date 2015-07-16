@@ -76,7 +76,10 @@ json::JSON Rackspace::POST(const std::string& url, const json::JSON& data, CodeP
   int code =
       request(url).customBody(stream).POST().perform(reply).responseCode();
   responseHandler(code);
-  return json::readValue(reply.begin(), reply.end());
+  if (reply.empty())
+    return {};
+  else
+    return json::readValue(reply.begin(), reply.end());
 }
 
 }

@@ -21,7 +21,7 @@ public:
   raxpp::model::AccessList &getAccessList(bool forceRefresh = false);
   void deleteAccessListItems(const std::vector<int> &itemsToDelete);
   /// Creates or updates the load balancer's accessList
-  void updateAccessList(const model::AccessList& accessList);
+  void appendToAccessList(const model::AccessList &accessList);
 };
 
 
