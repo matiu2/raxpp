@@ -38,7 +38,7 @@ HTTPCodeHandler const check_generalLoadBalancers {
      {413, "Over Limit - Wait, and try later"},
      {404, "Load balancer / Access List not found - Check the name"}}};
 
-json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const {
+json::JMap LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/GET_showAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
   std::stringstream url;
   url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID << "/accesslist";
@@ -46,7 +46,7 @@ json::JList LoadBalancer::getAccessList(Datacenter dc, int loadBalancerID) const
     std::stringstream msg;
     msg << "Getting AccessList for lb id: " << loadBalancerID;
     return msg.str();
-  })).at("accessList");
+  }));
 }
 
 void
@@ -78,6 +78,22 @@ LoadBalancer::deleteAccessListItems(Datacenter dc, int loadBalancerID,
   }
 }
 
+void LoadBalancer::updateAccessList(Datacenter dc, int loadBalancerID,
+                                    const json::JMap &accessList) const {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createAccessList_v1.0__account__loadbalancers__loadBalancerId__accesslist_Access_Lists-d1e3160.html
+  std::stringstream url;
+  url << dc_to_url.at(dc) << "/loadbalancers/" << loadBalancerID
+      << "/accesslist";
+  std::cout << "Access List: " << accessList << std::endl;
+  rs.POST(url.str(), accessList,
+          addContext(check_generalLoadBalancers,
+                     [&url, loadBalancerID, &accessList]() {
+            std::stringstream msg;
+            msg << "From creating/updating accessList on load balancer "
+                << loadBalancerID << " :" << accessList;
+            return msg.str();
+          }));
+}
 
 json::JMap LoadBalancer::create(Datacenter dc, const json::JMap& data) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers.html#POST_createLoadBalancer_v1.0__account__loadbalancers_load-balancers-Request

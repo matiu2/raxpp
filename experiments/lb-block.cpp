@@ -60,10 +60,10 @@ int main(int argc, char** argv) {
     if (found != accessMap.end()) {
       // And the list has it as allow,
       if (found->second->allow)
-        // Remove it
+        // Remove it from the LB's list
         itemsToDelete.push_back(found->second->id);
     } else {
-      // If it's not in the list, add it later
+      // Add it to the LB's block list
       addressesToAdd.push_back(ip);
     }
   }
@@ -88,6 +88,15 @@ int main(int argc, char** argv) {
     std::cout << (item.allow ? "Allow" : "Deny");
     std::cout << std::endl << std::endl;
   }
-  // 
+  // Add the items that need adding to the list
+  accessList.reserve(accessList.size() + addressesToAdd.size());
+  for (const auto& address : addressesToAdd) {
+    raxpp::model::AccessListItem item;
+    item.address = address;
+    item.allow = false;
+    accessList.emplace_back(std::move(item));
+  }
+  // Now tell rackspace
+  lb.updateAccessList(accessList);
   return 0;
 }

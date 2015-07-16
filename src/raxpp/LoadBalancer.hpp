@@ -20,6 +20,8 @@ public:
   /// Returns the access list for a load balancer .. gets it straight form the API (no caching)
   raxpp::model::AccessList &getAccessList(bool forceRefresh = false);
   void deleteAccessListItems(const std::vector<int> &itemsToDelete);
+  /// Creates or updates the load balancer's accessList
+  void updateAccessList(const model::AccessList& accessList);
 };
 
 

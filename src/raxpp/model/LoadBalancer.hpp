@@ -58,6 +58,7 @@ struct Node : public NewNode {
 };
 
 using AccessList = std::vector<AccessListItem>;
+using NewAccessList = std::vector<NewAccessListItem>;
 
 /// This is the data passed to the 'create load balancer' api call.
 struct NewLoadBalancer {

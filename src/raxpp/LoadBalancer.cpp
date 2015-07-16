@@ -16,4 +16,10 @@ model::AccessList& LoadBalancer::getAccessList(bool forceRefresh) {
 void LoadBalancer::deleteAccessListItems(const std::vector<int> &itemsToDelete) {
   api.deleteAccessListItems(model.dc, model.id, itemsToDelete);
 }
+
+void LoadBalancer::updateAccessList(const model::AccessList& accessList) {
+  api.updateAccessList(model.dc, model.id,
+                       json_conversion::accessList2json(accessList));
+}
+
 }

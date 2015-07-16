@@ -236,9 +236,10 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
   return result;
 }
 
-model::AccessList json2accessList(json::JList &json) {
+model::AccessList json2accessList(const json::JMap &json) {
   model::AccessList result;
-  for (auto &item : json) {
+  const json::JList &accessList(json.at("accessList"));
+  for (const auto &item : accessList) {
     model::AccessListItem output;
     output.id = (int)item.at("id");
     output.address = item.at("address");
@@ -257,4 +258,14 @@ model::AccessList json2accessList(json::JList &json) {
   }
   return std::move(result);
 }
+
+json::JMap accessList2json(const model::AccessList& accessList) {
+  // TODO: Do we need to encode 'ids' ? There's some data loss going on here.
+  json::JList innards;
+  for (const model::AccessListItem& item : accessList)
+    innards.push_back(json::JMap{{"address", item.address},
+                                 {"type", item.allow ? "ALLOW" : "DENY"}});
+  return json::JMap{{"accessList", std::move(innards)}};
+}
+
 }}
