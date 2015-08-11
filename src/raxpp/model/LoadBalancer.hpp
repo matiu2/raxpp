@@ -95,7 +95,7 @@ struct NewLoadBalancer {
   ConnectionLogging connectionLogging = ConnectionLogging::NONE;
   /// (Optional) Maximum number of connections to allow for a single IP address.
   /// Set to a value from 1 to 100000. (Sent as connectionThrottle from the docs)
-  size_t maxConnections;
+  size_t maxConnections = 0;
   /// (Optional) The type of health monitor check to perform to ensure that the
   /// service is performing properly
   HealthMonitor healthMonitor = HealthMonitor::NONE;
@@ -103,7 +103,7 @@ struct NewLoadBalancer {
   /// balancer.
   std::map<std::string, std::string> metadata;
   /// (Optional) Port number for the service you are load balancing.
-  unsigned short port;
+  unsigned short port = 0;
   /// (Optional) The timeout value for the load balancer and communications with
   /// its nodes. Defaults to 30 seconds with a maximum of 120 seconds.
   size_t timeout = 0;
@@ -117,7 +117,7 @@ struct NewLoadBalancer {
   /// would be redirected to https://example.com/page.html. Only available for
   /// HTTPS protocol (port=443), or HTTP protocol with a properly configured SSL
   /// termination (secureTrafficOnly=true, securePort=443).
-  bool httpsRedirect;
+  bool httpsRedirect = false;
 };
 
 struct LoadBalancer {
