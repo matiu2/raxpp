@@ -4,6 +4,7 @@ namespace raxpp {
 namespace json_conversion {
 
 model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc) {
+  // Example from a listing:
   // { "loadBalancers":[
   //   {
   //      "name":"lb-site1",
@@ -24,7 +25,57 @@ model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc) {
   //       "created":{ "time":"2010-11-30T03:23:42Z" },
   //       "updated":{ "time":"2010-11-30T03:23:44Z" }
   // },
+  // Example from creating an LB:
+  // {
+  //   "loadBalancer": {
+  //     "virtualIps": [
+  //       {
+  //         "type": "PUBLIC",
+  //         "ipVersion": "IPV4",
+  //         "id": 2099,
+  //         "address": "119.9.56.59"
+  //       },
+  //       {
+  //         "type": "PUBLIC",
+  //         "ipVersion": "IPV6",
+  //         "id": 9023010,
+  //         "address": "2401:1801:7901:0000:9ff4:a092:0000:0004"
+  //       }
+  //     ],
+  //     "updated": {
+  //       "time": "2015-08-11T06:19:58Z"
+  //     },
+  //     "timeout": 30,
+  //     "status": "BUILD",
+  //     "sourceAddresses": {
+  //       "ipv6Public": "2401:1801:7901::5/64",
+  //       "ipv4Servicenet": "10.189.254.8",
+  //       "ipv4Public": "119.9.8.8"
+  //     },
+  //     "protocol": "HTTP",
+  //     "port": 80,
+  //     "name": "matt.sherborne.test1",
+  //     "algorithm": "LEAST_CONNECTIONS",
+  //     "cluster": {
+  //       "name": "ztm-n05.syd2.lbaas.rackspace.net"
+  //     },
+  //     "connectionLogging": {
+  //       "enabled": false
+  //     },
+  //     "contentCaching": {
+  //       "enabled": false
+  //     },
+  //     "created": {
+  //       "time": "2015-08-11T06:19:58Z"
+  //     },
+  //     "halfClosed": false,
+  //     "httpsRedirect": false,
+  //     "id": 43991
+  //   }
+  // }
   model::LoadBalancer result;
+  using namespace std;
+  cout << "Result: " << json << endl;
   result.dc = dc;
   result.name = json.at("name");
   result.id = (int)json.at("id");
@@ -58,21 +109,6 @@ model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc) {
     if ((version != vip.end()) && (version->second == "IPV6"))
       ip.ipVersion = IPVersion::IPV6;
     result.virtualIps.emplace_back(ip);
-  }
-  return std::move(result);
-}
-
-json::JList
-virtualIPs2json(const std::vector<model::NewVirtualIP> &virtualIps) {
-  json::JList result;
-  result.reserve(virtualIps.size());
-  using Type = model::VirtualIP::Type;
-  using Version = model::VirtualIP::Version;
-  for (const auto &IP : virtualIps) {
-    result.emplace_back(json::JMap{
-        {"address", IP.address},
-        {"type", IP.type == Type::PUBLIC ? "PUBLIC" : "PRIVATE"},
-        {"ipVersion", IP.ipVersion == Version::IPV6 ? "IPV6" : "IPV4"}});
   }
   return std::move(result);
 }
@@ -171,7 +207,7 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
   // sessionPersistence String (Optional) Specifies whether multiple requests from clients are directed to the same node.  
   // httpsRedirect Boolean (Optional) Enables or disables HTTP to HTTPS redirection for the load balancer. When enabled, any HTTP request returns status code 301 (Moved Permanently), and the requester is redirected to the requested URL via the HTTPS protocol on port 443. For example, http://example.com/page.html would be redirected to https://example.com/page.html. Only available for HTTPS protocol (port=443), or HTTP protocol with a properly configured SSL termination (secureTrafficOnly=true, securePort=443).
   using namespace json;
-  json::JMap result = {{"loadBalancer", JMap{{"name", model.name}}}};
+  json::JMap result = {JMap{{"name", model.name}}};
   if (!model.nodes.empty())
     result.insert({"nodes", newNodes2json(model.nodes)});
   if (!model.protocol.empty())
@@ -181,7 +217,7 @@ json::JMap lb2json(const model::NewLoadBalancer& model) {
     result.insert(
         {"halfClosed", model.halfClosed == Bool::True ? true : false});
   if (!model.virtualIps.empty())
-    result.insert({"virtualIps", virtualIPs2json(model.virtualIps)});
+    result.insert({"virtualIps", newVirtualIPs2json(model.virtualIps)});
   if (!model.accessList.empty())
     result.insert({"accessList", accessList2json(model.accessList)});
   result.insert({"algorithm", algorithm2string(model.algorithm)});
@@ -264,4 +300,28 @@ model::AccessList json2accessList(const json::JMap &json) {
   return std::move(result);
 }
 
+json::JMap newVirtualIP2json(const model::NewVirtualIP &vip) {
+  json::JMap result;
+  if (!vip.address.empty())
+    result["address"] = vip.address;
+  using Type = model::NewVirtualIP::Type;
+  switch (vip.type) {
+  case Type::PUBLIC:
+    result["type"] = "PUBLIC";
+    break;
+  case Type::PRIVATE:
+    result["type"] = "PRIVATE";
+    break;
+  };
+  if (vip.ipVersion == model::NewVirtualIP::Version::IPV6)
+    result["version"] = "IPv6";
+  return std::move(result);
+}
+
+json::JList newVirtualIPs2json(const std::vector<model::NewVirtualIP> &vips) {
+  json::JList result;
+  for (const auto &vip : vips)
+    result.push_back(newVirtualIP2json(vip));
+  return std::move(result);
+}
 }}

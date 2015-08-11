@@ -29,7 +29,8 @@ int main(int argc, char** argv) {
   NewLoadBalancer parameters;
   parameters.name = lbName;
   parameters.dc = dc;
-  parameters.protocol = "http";
+  parameters.protocol = "HTTP";
+  parameters.port = 80;
   lbs.create(parameters);
   return 0;
 }

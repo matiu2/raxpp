@@ -21,7 +21,7 @@ struct NewVirtualIP {
   /// section "Virtual IPs".
   Type type = Type::PUBLIC;
   /// The IP version.
-  Version ipVersion;
+  Version ipVersion = Version::IPV4;
   operator std::string& () { return address; }
   operator const std::string& () const { return address; }
 };
@@ -72,8 +72,8 @@ struct NewLoadBalancer {
   Datacenter dc;
   /// (Optional) Nodes to be added to the load balancer.
   std::vector<NewNode> nodes;
-  /// (Required) Protocol of the service that is being load balanced.
-  std::string protocol;
+  /// (Required) Protocol of the service that is being load balanced. eg. HTTP
+  std::string protocol = "HTTP";
   /// (Optional) Enables or disables Half-Closed support for the load balancer.
   /// Half-Closed support provides the ability for one end of the connection to
   /// terminate its output, while still receiving data from the other end./ Only
@@ -81,7 +81,7 @@ struct NewLoadBalancer {
   Bool halfClosed = Bool::Absent;
   /// (Required) Type of virtualIp to add with the creation of a load balancer.
   /// See the virtual IP types table in the Chapter 4 section "Virtual IPs".
-  std::vector<NewVirtualIP> virtualIps;
+  std::vector<NewVirtualIP> virtualIps = {{}};
   /// The access list (firewall like thing) - (Optional) The access list
   /// management feature allows fine-grained network access controls to be
   /// applied to the load balancer virtual IP address. Refer to the Chapter 4
@@ -103,7 +103,7 @@ struct NewLoadBalancer {
   /// balancer.
   std::map<std::string, std::string> metadata;
   /// (Optional) Port number for the service you are load balancing.
-  unsigned short port = 0;
+  unsigned short port = 80;
   /// (Optional) The timeout value for the load balancer and communications with
   /// its nodes. Defaults to 30 seconds with a maximum of 120 seconds.
   size_t timeout = 0;

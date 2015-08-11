@@ -26,6 +26,19 @@ json::JMap accessList2json(const model::AccessList& accessList);
 
 json::JList newAccessList2json(const model::AccessList& accessList);
 
+/**
+* @brief Converts a NewVirtualIP to JSON
+*
+* @param vip The virtual IP to convert (ip address can be empty, which means
+*            we'll omit it in the json completely).
+*
+* @return json represtentation of the virtual IP address
+*/
+json::JMap newVirtualIP2json(const model::NewVirtualIP& vip);
+
+json::JList newVirtualIPs2json(const std::vector<model::NewVirtualIP>& vips);
+
+
 
 }
 }

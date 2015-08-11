@@ -50,7 +50,8 @@ LoadBalancer &LoadBalancers::findById(int id, Datacenter dc,
 }
 
 LoadBalancer& LoadBalancers:: create(const model::NewLoadBalancer& plan) {
-  json::JMap upload = json_conversion::lb2json(plan);
+  json::JMap upload;
+  upload["loadBalancer"] = json_conversion::lb2json(plan);
   using namespace std;
   cout << upload << endl;
   json::JMap result = _api.create(plan.dc, upload);
