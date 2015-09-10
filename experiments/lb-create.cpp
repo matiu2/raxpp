@@ -8,13 +8,12 @@ int main(int argc, char** argv) {
   curl::GlobalSentry s;
   if (argc < 5) {
     std::cerr << "USAGE: " << argv[0]
-              << " username apikey datacenter load-balancer-name ([DENY/ALLOW] "
-                 "network ...)" << std::endl
+              << " username apikey datacenter load-balancer-name" << std::endl
               << "Username: Your rackspace login username" << std::endl
               << "apikey: Your rackspace apikey" << std::endl
               << "datacenter: ORD/DFW/SYD/IAD/HKG (No UK support)" << std::endl
               << "load-balancer-name: The name of the load balancer to apply "
-                 "the DENY / ALLOW" << std::endl << std::endl;
+              << std::endl << std::endl;
     return 1;
   }
   std::string username = argv[1];

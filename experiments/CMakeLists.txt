@@ -9,3 +9,6 @@ target_link_libraries(lb-block raxpp)
 
 add_executable(lb-create lb-create.cpp)
 target_link_libraries(lb-create raxpp)
+
+add_executable(lb-list lb-list.cpp)
+target_link_libraries(lb-list raxpp)
