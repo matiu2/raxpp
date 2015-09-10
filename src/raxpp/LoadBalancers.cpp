@@ -55,7 +55,7 @@ LoadBalancer& LoadBalancers:: create(const model::NewLoadBalancer& plan) {
   using namespace std;
   cout << upload << endl;
   json::JMap result = _api.create(plan.dc, upload);
-  raxpp::model::LoadBalancer model = json_conversion::json2lb(result, plan.dc);
+  raxpp::model::LoadBalancer model = json_conversion::json2lb(result["loadBalancer"], plan.dc);
   auto& lbs = dc_to_lbs[plan.dc];
   lbs.push_back(LoadBalancer(_api, std::move(model)));
   return lbs.back();
