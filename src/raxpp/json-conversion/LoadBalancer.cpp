@@ -76,18 +76,27 @@ model::LoadBalancer json2lb(const json::JSON &json, Datacenter dc) {
   model::LoadBalancer result;
   using namespace std;
   cout << "Result: " << json << endl;
+  const json::JMap &jmap(json);
   result.dc = dc;
-  result.name = json.at("name");
-  result.id = (int)json.at("id");
-  result.protocol = json.at("protocol");
-  result.port = (int)json.at("port");
-  result.algorithm = json.at("algorithm");
-  result.status = json.at("status");
-  result.nodeCount = (int)json.at("nodeCount");
-  result.created = json.at("created").at("time");
-  result.updated = json.at("updated").at("time");
+  auto getString = [&jmap](const std::string &key) -> std::string {
+    auto found = jmap.find(key);
+    return found == jmap.end() ? "" : found->second;
+  };
+  auto getInt = [&jmap](const std::string &key) -> int {
+    auto found = jmap.find(key);
+    return found == jmap.end() ? 0 : (int)found->second;
+  };
+  result.name = getString("name");
+  result.id = getInt("id");
+  result.protocol = getString("protocol");
+  result.port = getInt("port");
+  result.algorithm = getString("algorithm");
+  result.status = getString("status");
+  result.nodeCount = getInt("nodeCount");
+  result.created = jmap.at("created").at("time");
+  result.updated = jmap.at("updated").at("time");
   for (const json::JMap &vip :
-       static_cast<const json::JList &>(json.at("virtualIps"))) {
+       static_cast<const json::JList &>(jmap.at("virtualIps"))) {
     model::VirtualIP ip;
     ip.id = (int)vip.at("id");
     ip.address = vip.at("address");
