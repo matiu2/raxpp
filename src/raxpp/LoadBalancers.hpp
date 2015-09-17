@@ -32,6 +32,7 @@ public:
   LoadBalancer& findByName(const std::string& name, Datacenter dc, bool forceRefresh = false);
   LoadBalancer& findById(int id, Datacenter dc, bool forceRefresh = false);
   const raxpp::api::LoadBalancer& api() const { return _api; }
+  void bulk_delete(Datacenter dc, std::vector<int> ids);
 };
 
 }

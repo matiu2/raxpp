@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 #include <raxpp/base/Datacenter.hpp>
 #include <raxpp/api/Rackspace.hpp>
@@ -43,6 +44,8 @@ public:
   void appendToAccessList(Datacenter dc, int loadBalancerID,
                           const json::JMap &accessList) const;
   json::JMap create(Datacenter dc, const json::JMap& data);
+  /// Bulk delete nodes from the load balancer
+  void bulkDeletNodes(Datacenter dc, int loadBalancerID, std::vector<int> ids);
 };
 
 

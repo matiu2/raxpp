@@ -105,5 +105,24 @@ json::JMap LoadBalancer::create(Datacenter dc, const json::JMap& data) {
   return rs.POST(url.str(), data, check_lb_update);
 }
 
+void LoadBalancer::bulkDeletNodes(Datacenter dc, int loadBalancerID,
+                                  std::vector<int> ids) {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/DELETE_bulkDeleteNodes_v1.0__account__loadbalancers__loadBalancerId__nodes_Nodes-d1e2173.html
+  // DELETE /v1.0/{account}/loadbalancers/{loadBalancerId}/nodes{?nodeId}
+  assert(ids.size());
+  std::stringstream url;
+  url << dc_to_url.at(dc) << "/loadbalancers" << loadBalancerID << "/nodes?";
+  auto i = ids.begin();
+  auto last = --ids.end();
+  while (i != last)
+    url << *(i++) << ',';
+  url << *last;
+  rs.del(url.str(), addContext(check_lb_update, [&url]() {
+                      std::stringstream msg;
+                      msg << " from trying to bulk delete load balancers."
+                          << url.str();
+                      return msg.str();
+                    }));
+}
 }
 }
