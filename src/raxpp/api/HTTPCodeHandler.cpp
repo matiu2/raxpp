@@ -12,7 +12,8 @@ void HTTPCodeHandler::operator()(int code, const std::string &context) const {
     std::stringstream msg;
     if (!context.empty())
       msg << context << ": ";
-    throw APIError(code, foundError->second);
+    msg << foundError->second;
+    throw APIError(code, msg.str());
   }
   auto foundGood = goodCodes.find(code);
   if (foundGood == goodCodes.end()) {

@@ -105,18 +105,39 @@ json::JMap LoadBalancer::create(Datacenter dc, const json::JMap& data) {
   return rs.POST(url.str(), data, check_lb_update);
 }
 
-void LoadBalancer::bulkDeletNodes(Datacenter dc, int loadBalancerID,
+template <typename Iter>
+void addIdsToStream(std::ostream& out, Iter begin, Iter end) {
+  auto i = begin;
+  auto last = end;
+  --last;
+  while (i != last)
+    out << *(i++) << "&id=";
+  out << *last;
+}
+
+void LoadBalancer::bulkDeleteNodes(Datacenter dc, int loadBalancerID,
                                   std::vector<int> ids) {
   // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/DELETE_bulkDeleteNodes_v1.0__account__loadbalancers__loadBalancerId__nodes_Nodes-d1e2173.html
   // DELETE /v1.0/{account}/loadbalancers/{loadBalancerId}/nodes{?nodeId}
   assert(ids.size());
   std::stringstream url;
-  url << dc_to_url.at(dc) << "/loadbalancers" << loadBalancerID << "/nodes?";
-  auto i = ids.begin();
-  auto last = --ids.end();
-  while (i != last)
-    url << *(i++) << ',';
-  url << *last;
+  url << dc_to_url.at(dc) << "/loadbalancers" << loadBalancerID << "/nodes?id=";
+  addIdsToStream(url, ids.begin(), ids.end());
+  rs.del(url.str(), addContext(check_lb_update, [&url]() {
+                      std::stringstream msg;
+                      msg << " from trying to bulk delete load balancer nodes."
+                          << url.str();
+                      return msg.str();
+                    }));
+}
+
+void LoadBalancer::bulkDeleteLoadBalancers(Datacenter dc, std::vector<int> ids) {
+  // http://docs.rackspace.com/loadbalancers/api/v1.0/clb-devguide/content/DELETE_bulkDeleteLoadBalancer_v1.0__account__loadbalancers_load-balancers.html
+  // DELETE /v1.0/{account}/loadbalancers/{?nodeId[,nodeId]}
+  assert(ids.size());
+  std::stringstream url;
+  url << dc_to_url.at(dc) << "/loadbalancers?id=";
+  addIdsToStream(url, ids.begin(), ids.end());
   rs.del(url.str(), addContext(check_lb_update, [&url]() {
                       std::stringstream msg;
                       msg << " from trying to bulk delete load balancers."

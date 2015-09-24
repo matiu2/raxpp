@@ -45,7 +45,9 @@ public:
                           const json::JMap &accessList) const;
   json::JMap create(Datacenter dc, const json::JMap& data);
   /// Bulk delete nodes from the load balancer
-  void bulkDeletNodes(Datacenter dc, int loadBalancerID, std::vector<int> ids);
+  void bulkDeleteNodes(Datacenter dc, int loadBalancerID, std::vector<int> ids);
+  /// Bulk delete load balancers
+  void bulkDeleteLoadBalancers(Datacenter dc, std::vector<int> ids);
 };
 
 

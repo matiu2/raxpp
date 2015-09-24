@@ -12,3 +12,7 @@ target_link_libraries(lb-create raxpp)
 
 add_executable(lb-list lb-list.cpp)
 target_link_libraries(lb-list raxpp)
+
+
+add_executable(lb-delete lb-delete.cpp)
+target_link_libraries(lb-delete raxpp)
