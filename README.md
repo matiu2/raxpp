@@ -16,20 +16,18 @@ Once you've included the cdn, you'll be able to create a CDNService object, and 
 
 Usage example:
 
---------
-#include <rax/api.hpp>
-#include <rax/server.hpp>
+    #include <rax/api.hpp>
+    #include <rax/server.hpp>
 
-using namespace rax;
+    using namespace rax;
 
-API api(username, apikey);
-ServerService servers(api);
+    API api(username, apikey);
+    ServerService servers(api);
 
-for (auto &server : servers)
-    server.reboot();
+    for (auto &server : servers)
+        server.reboot();
 
-auto& web01 = servers.getByName("Web01");
-web01.createSnapshot("daily");
------
+    auto& web01 = servers.getByName("Web01");
+    web01.createSnapshot("daily");
 
 The idea is that you only need to include the files you need, to make your compilation faster.
