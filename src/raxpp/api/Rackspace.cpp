@@ -52,9 +52,7 @@ curl::Easy& Rackspace::request(const std::string& url) {
 #ifdef DEBUG_CURL
       .setOpt(CURLOPT_VERBOSE)
 #endif
-      .header(_authHeader)
-      .header("Accept: application/json")
-      .header("Content-type: application/json");
+      .header(_authHeader);
 }
 
 json::JSON Rackspace::get(const std::string& url, CodeProcessor responseHandler) {
