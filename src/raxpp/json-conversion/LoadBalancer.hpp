@@ -4,7 +4,6 @@
 #include <raxpp/model/LoadBalancer.hpp>
 
 #include <json_class.hpp>
-#include <parse_to_json_class.hpp>
 
 namespace raxpp {
 namespace json_conversion {

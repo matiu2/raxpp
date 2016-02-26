@@ -1,5 +1,7 @@
 #include "LoadBalancer.hpp"
 
+#include <parse_to_json_class.hpp>
+
 namespace raxpp {
 namespace json_conversion {
 

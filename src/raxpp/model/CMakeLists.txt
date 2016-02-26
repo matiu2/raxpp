@@ -1,4 +1,4 @@
 project(model)
 
-add_library(model empty.cpp)
+add_library(model Monitoring.cpp)
 target_link_libraries(model base)

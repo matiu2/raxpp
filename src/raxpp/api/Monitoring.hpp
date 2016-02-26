@@ -40,7 +40,7 @@ public:
   ///        "next_href": null
   ///    }
   /// }
-  json::JMap listMonitoringZones();
+  json::JList listMonitoringZones() const;
 };
 
 }
