@@ -41,6 +41,8 @@ public:
   ///    }
   /// }
   json::JList listMonitoringZones() const;
+  /// Lists all monitoring entities
+  json::JList listEntities() const;
 };
 
 }

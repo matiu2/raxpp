@@ -12,7 +12,7 @@ private:
   api::Monitoring api;
 public:
   Monitoring(raxpp::api::Rackspace& rs) : api(rs) {}
-  std::vector<model::MonitoringZone> getMonitoringZones() const;
+  std::vector<model::monitoring::Zone> getMonitoringZones() const;
 };
 
 }

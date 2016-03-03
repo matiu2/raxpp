@@ -5,7 +5,7 @@
 namespace raxpp {
 namespace json_conversion {
 
-std::vector<model::MonitoringZone>
+std::vector<model::monitoring::Zone>
 json2monitoringZones(const json::JList &json) {
   // Example: [{"country_code":"US","id":"mzdfw","label":"Dallas Fort Worth
   // (DFW)","source_ips":["2001:4800:7902:0001::/64","50.56.142.128/26"]},{"country_code":"HK","id":"mzhkg","label":"Hong
@@ -16,10 +16,10 @@ json2monitoringZones(const json::JList &json) {
   // (LON)","source_ips":["2a00:1a48:7902:0001::/64","78.136.44.0/26"]},{"country_code":"US","id":"mzord","label":"Chicago
   // (ORD)","source_ips":["2001:4801:7902:0001::/64","50.57.61.0/26"]},{"country_code":"AU","id":"mzsyd","label":"Sydney
   // (SYD)","source_ips":["2401:1801:7902:0001::/64","119.9.5.0/26"]}]
-  std::vector<model::MonitoringZone> result;
+  std::vector<model::monitoring::Zone> result;
   // JSON item is a list
   for (const auto &item : json) {
-    model::MonitoringZone output;
+    model::monitoring::Zone output;
     output.countryCode = item.at("country_code");
     output.id = item.at("id");
     output.label = item.at("label");

@@ -38,5 +38,13 @@ json::JList Monitoring::listMonitoringZones() const {
 }
 
 
+json::JList Monitoring::listEntities() const {
+    json::JMap result = rs.get(url + "/entities", check_monitoring_read);
+    // TODO: result.at("metadata") contains { "count": 4, "limit": 100, "marker": null, "next_href": null }
+    // We might want to actually process that
+    return result.at("values");
+}
+
+
 }
 }

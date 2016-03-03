@@ -17,7 +17,7 @@ int main(int argc, char** argv)
   raxpp::Monitoring monitoring(rs);
   const auto values = monitoring.getMonitoringZones();
   using namespace std;
-  for (const raxpp::model::MonitoringZone &value : values)
+  for (const raxpp::model::monitoring::Zone &value : values)
     cout << "countryCode: " << value.countryCode << endl << "id: " << value.id
          << endl << "label: " << value.label << endl
          << "sourceIPRangeV4: " << value.sourceIPRangeV4 << endl

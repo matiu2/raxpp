@@ -5,7 +5,7 @@
 
 namespace raxpp {
 
-std::vector<model::MonitoringZone> Monitoring::getMonitoringZones() const {
+std::vector<model::monitoring::Zone> Monitoring::getMonitoringZones() const {
   auto&& j = api.listMonitoringZones();
   return json_conversion::json2monitoringZones(j);
 }

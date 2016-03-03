@@ -48,11 +48,17 @@ const json::JMap &Rackspace::getCatalog(const std::string &name) const {
 
 curl::Easy& Rackspace::request(const std::string& url) {
   client.reset();
-  return client.url(url.c_str())
+  client.url(url.c_str());
 #ifdef DEBUG_CURL
-      .setOpt(CURLOPT_VERBOSE)
+  client.setOpt(CURLOPT_VERBOSE);
 #endif
-      .header(_authHeader);
+  if (haveSentAuth) {
+    client.header(); // Load previous headers (which were emptied after reset)
+  } else {
+    client.header(_authHeader);
+    haveSentAuth = true;
+  }
+  return client;
 }
 
 json::JSON Rackspace::get(const std::string& url, CodeProcessor responseHandler) {

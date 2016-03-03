@@ -17,8 +17,10 @@ int main(int argc, char** argv) {
   // Login to rackspace
   raxpp::api::Rackspace rs(username, apikey);
   raxpp::api::Monitoring monitoring(rs);
-  const auto values = monitoring.listMonitoringZones();
+  const auto zones = monitoring.listMonitoringZones();
+  const auto entities = monitoring.listEntities();
   using namespace std;
-  cout << values << endl;
+  //cout << "Zones: " << zones << endl;
+  cout << entities << endl;
   return 0;
 }
