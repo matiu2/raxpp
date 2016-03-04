@@ -40,7 +40,7 @@ public:
   ///        "next_href": null
   ///    }
   /// }
-  json::JList listMonitoringZones() const;
+  json::JList listZones() const;
   /// Lists all monitoring entities
   json::JList listEntities() const;
 };
